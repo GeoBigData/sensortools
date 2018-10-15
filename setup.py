@@ -33,7 +33,7 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
 
-    packages=find_packages(['sensortools'], exclude=['tests', 'docs', 'examples']),
+    packages=find_packages(exclude=['tests', 'docs', 'examples']),
 
     install_requires=requirements
 
