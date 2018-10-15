@@ -7,7 +7,7 @@ class sensortools(object):
 
     '''
     def __init__(self):
-        self.sensors = _getSensorInfo()
+        self.sensors = self._getSensorInfo()
 
     def _getSensorInfo(self):
         return pd.read_csv('../data/sensors.csv')
