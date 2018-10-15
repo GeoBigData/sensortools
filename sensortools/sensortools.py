@@ -7,10 +7,59 @@ class sensortools(object):
 
     '''
     def __init__(self):
-        self.sensors = self._getSensorInfo()
+        self.sensor_info = self._sensorInfo()
+        self.sensors = self._formatSensorInfo()
 
-    def _getSensorInfo(self):
-        return pd.read_csv('../data/sensors.csv')
+    def _formatSensorInfo(self):
+        df = pd.DataFrame(columns=['Sensor', 'Resolution (m)', 'Band Count'])
+        for i, (image, key) in enumerate(image_info.items()):
+            df.loc[i] = [image, key['resolution'], key['band_count']]
+            
+        return df
+
+    def _sensorInfo(self):
+        sensor_info = {
+            'GE01_Pan' : {
+                'resolution' : 0.41,
+                'band_count' : 1
+            },
+            'GE01_MS' : {
+                'resolution' : 1.64,
+                'band_count' : 4
+            },
+            'WV01_Pan' : {
+                'resolution' : 0.5,
+                'band_count' : 1
+            },
+            'WV02_Pan' : {
+                'resolution' : 0.46,
+                'band_count' : 1
+            },
+            'WV02_MS' : {
+                'resolution' : 1.85,
+                'band_count' : 8
+            },
+            'WV03_Pan' : {
+                'resolution' : 0.31,
+                'band_count' : 1
+            },
+            'WV03_MS' : {
+                'resolution' : 1.24,
+                'band_count' : 8
+            },
+            'WV03_SWIR' : {
+                'resolution' : 3.7,
+                'band_count' : 8
+            },
+            'WV04_Pan' : {
+                'resolution' : 0.31,
+                'band_count' : 1
+            },
+            'WV04_MS' : {
+                'resolution' : 1.24,
+                'band_count' : 4}}
+
+        return sensor_info
 
     def gb_to_km2(self, gb, bit_depth=32):
         """
