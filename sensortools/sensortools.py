@@ -64,7 +64,9 @@ class sensortools(object):
         return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
     def plotSearch(self):
-        pass
+        '''
+        Function to plot out the results of an image/AOI search
+        '''
 
     def mapAOI(self, sensor_km2):
         m = folium.Map(location=[39.742043, -104.991531], zoom_start=8, tiles='Stamen Terrain')
