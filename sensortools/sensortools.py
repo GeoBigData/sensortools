@@ -7,14 +7,16 @@ class sensortools(object):
 
     '''
     def __init__(self):
+        # grab the sensor infomation
         self.sensor_info = self._sensorInfo()
+        # format the sensor infomation into pandas df 
         self.sensors = self._formatSensorInfo()
 
     def _formatSensorInfo(self):
         df = pd.DataFrame(columns=['Sensor', 'Resolution (m)', 'Band Count'])
-        for i, (image, key) in enumerate(image_info.items()):
+        for i, (image, key) in enumerate(self.sensor_info.items()):
             df.loc[i] = [image, key['resolution'], key['band_count']]
-            
+
         return df
 
     def _sensorInfo(self):
