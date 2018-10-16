@@ -118,7 +118,15 @@ class sensortools(object):
         '''
         Function to plot out the results of an image/AOI search
         '''
-        df = self._formatSearch(search_results)
+
+        s, t = [], []
+        for i, re in enumerate(search_results):
+            s.append(re['properties']['sensorPlatformName'])
+            t.append(re['properties']['timestamp'])
+        df = pd.DataFrame({'Sensor': s, 'Time': t})
+        df['Time'] = pd.to_datetime(df.Time)
+        df.sort_values(['Time'], inplace=True)
+        df['x'] = range(len(df))
 
         f, ax = plt.subplots(figsize=(12,6))
         sns.despine(bottom=True, left=True)
@@ -148,21 +156,6 @@ class sensortools(object):
             t.set_text(label)
 
         return f
-
-    def _formatSearch(self, search_results):
-        """
-        Format the results
-        """
-        s, t = [], []
-        for i, re in enumerate(search_results):
-            s.append(re['properties']['sensorPlatformName'])
-            t.append(re['properties']['timestamp'])
-        df = pd.DataFrame({'Sensor': s, 'Time': t})
-        df['Time'] = pd.to_datetime(df.Time)
-        df.sort_values(['Time'], inplace=True)
-        df['x'] = range(len(df))
-
-        return df
 
     def mapAOI(self, sensor_km2):
         m = folium.Map(location=[39.742043, -104.991531], zoom_start=8, tiles='Stamen Terrain')
