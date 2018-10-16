@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 import folium
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import seaborn as sns
 
 class sensortools(object):
     '''
@@ -114,7 +117,7 @@ class sensortools(object):
 
         return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
-    def searchPlot(search_results):
+    def searchPlot(self, search_results):
         '''
         Function to plot out the results of an image/AOI search
         '''
@@ -145,11 +148,12 @@ class sensortools(object):
         ax.xaxis.set_major_formatter(yearsFmt)
         ax.xaxis.set_minor_locator(months)
 
+        s = df.groupby(['Sensor']).count()
+
         _= ax.set_yticklabels(s.index + ' Count: ' + s.x.map(str))
         _= ax.get_yaxis().set_visible(False)
 
         legend = ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=len(s.index))
-        s = df.groupby(['Sensor']).count()
         for t in legend.get_texts():
             c = s[s.index==t.get_text()].x.values[0]
             label = t.get_text() + ' Count:' + str(c)
