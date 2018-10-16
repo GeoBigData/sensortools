@@ -154,7 +154,7 @@ class sensortools(object):
         Format the results
         """
         s, t = [], []
-        for im re in enumerate(search_results):
+        for i, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
         df = pd.DataFrame({'Sensor': s, 'Time': t})
