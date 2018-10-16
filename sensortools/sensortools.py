@@ -14,6 +14,8 @@ class sensortools(object):
         self._sensor_info = self._sensorInfo()
         # format the sensor infomation into pandas df
         self.sensors = self._formatSensorInfo()
+        # formatted seach results from catalog search
+        self.search_df = None
 
     def _formatSensorInfo(self):
         df = pd.DataFrame(columns=['Sensor', 'Resolution (m)', 'Band Count'])
@@ -117,10 +119,10 @@ class sensortools(object):
 
         return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
-    def searchPlot(self, search_results):
-        '''
-        Function to plot out the results of an image/AOI search
-        '''
+    def formatSearchResults(self, search_results):
+        """
+        Format the results into a pandas df. To be used in plotting functions but also useful outside of them.
+        """
 
         s, t = [], []
         for i, re in enumerate(search_results):
@@ -131,11 +133,18 @@ class sensortools(object):
         df.sort_values(['Time'], inplace=True)
         df['x'] = range(len(df))
 
+        self.search_df = df
+
+    def searchPlot(self):
+        '''
+        Function to plot out the results of an image/AOI search
+        '''
+
         f, ax = plt.subplots(figsize=(12,6))
         sns.despine(bottom=True, left=True)
 
         sns.stripplot(x="Time", y="Sensor", hue="Sensor",
-                      data=df, dodge=True, jitter=True,
+                      data=self.search_df, dodge=True, jitter=True,
                       alpha=.25, zorder=1)
 
         years = mdates.YearLocator()   # every year
@@ -148,7 +157,7 @@ class sensortools(object):
         ax.xaxis.set_major_formatter(yearsFmt)
         ax.xaxis.set_minor_locator(months)
 
-        s = df.groupby(['Sensor']).count()
+        s = self.search_df.groupby(['Sensor']).count()
 
         _= ax.set_yticklabels(s.index + ' Count: ' + s.x.map(str))
         _= ax.get_yaxis().set_visible(False)
