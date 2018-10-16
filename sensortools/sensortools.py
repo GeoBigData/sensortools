@@ -145,7 +145,7 @@ class sensortools(object):
 
         sns.stripplot(x="Time", y="Sensor", hue="Sensor",
                       data=self.search_df, dodge=True, jitter=True,
-                      alpha=.25, zorder=1, size=6)
+                      alpha=.25, zorder=1, size=10)
 
         years = mdates.YearLocator()   # every year
         months = mdates.MonthLocator()  # every month
