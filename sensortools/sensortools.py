@@ -159,7 +159,7 @@ class sensortools(object):
             label = t.get_text() + ' Count:' + str(c)
             t.set_text(label)
 
-        return f
+        return None
 
     def mapAOI(self, sensor_km2):
         m = folium.Map(location=[39.742043, -104.991531], zoom_start=8, tiles='Stamen Terrain')

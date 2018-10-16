@@ -5,3 +5,4 @@ gbdxtools
 numpy
 pyproj
 pandas
+seaborn
