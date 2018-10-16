@@ -114,7 +114,7 @@ class sensortools(object):
 
         return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
-    def plotSearch(self, search_results):
+    def searchPlot(search_results):
         '''
         Function to plot out the results of an image/AOI search
         '''
