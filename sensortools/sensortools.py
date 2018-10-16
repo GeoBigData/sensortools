@@ -8,13 +8,13 @@ class sensortools(object):
     '''
     def __init__(self):
         # grab the sensor infomation
-        self.sensor_info = self._sensorInfo()
-        # format the sensor infomation into pandas df 
+        self._sensor_info = self._sensorInfo()
+        # format the sensor infomation into pandas df
         self.sensors = self._formatSensorInfo()
 
     def _formatSensorInfo(self):
         df = pd.DataFrame(columns=['Sensor', 'Resolution (m)', 'Band Count'])
-        for i, (image, key) in enumerate(self.sensor_info.items()):
+        for i, (image, key) in enumerate(self._sensor_info.items()):
             df.loc[i] = [image, key['resolution'], key['band_count']]
 
         return df
@@ -114,10 +114,55 @@ class sensortools(object):
 
         return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
-    def plotSearch(self):
+    def plotSearch(self, search_results):
         '''
         Function to plot out the results of an image/AOI search
         '''
+        df = self._formatSearch(search_results)
+
+        f, ax = plt.subplots(figsize=(12,6))
+        sns.despine(bottom=True, left=True)
+
+        sns.stripplot(x="Time", y="Sensor", hue="Sensor",
+                      data=df, dodge=True, jitter=True,
+                      alpha=.25, zorder=1)
+
+        years = mdates.YearLocator()   # every year
+        months = mdates.MonthLocator()  # every month
+        yearsFmt = mdates.DateFormatter('%Y')
+        monthsFmt = mdates.DateFormatter('%m')
+
+        # TODO: check len of date range and adjust labels accordingly
+        ax.xaxis.set_major_locator(years)
+        ax.xaxis.set_major_formatter(yearsFmt)
+        ax.xaxis.set_minor_locator(months)
+
+        _= ax.set_yticklabels(s.index + ' Count: ' + s.x.map(str))
+        _= ax.get_yaxis().set_visible(False)
+
+        legend = ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=len(s.index))
+        s = df.groupby(['Sensor']).count()
+        for t in legend.get_texts():
+            c = s[s.index==t.get_text()].x.values[0]
+            label = t.get_text() + ' Count:' + str(c)
+            t.set_text(label)
+
+        return f
+
+    def _formatSearch(search_results):
+        """
+        Format the results
+        """
+        s, t = [], []
+        for im re in enumerate(search_results):
+            s.append(re['properties']['sensorPlatformName'])
+            t.append(re['properties']['timestamp'])
+        df = pd.DataFrame({'Sensor': s, 'Time': t})
+        df['Time'] = pd.to_datetime(df.Time)
+        df.sort_values(['Time'], inplace=True)
+        df['x'] = range(len(df))
+
+        return df
 
     def mapAOI(self, sensor_km2):
         m = folium.Map(location=[39.742043, -104.991531], zoom_start=8, tiles='Stamen Terrain')
