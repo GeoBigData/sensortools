@@ -149,7 +149,7 @@ class sensortools(object):
 
         return f
 
-    def _formatSearch(search_results):
+    def _formatSearch(self, search_results):
         """
         Format the results
         """
