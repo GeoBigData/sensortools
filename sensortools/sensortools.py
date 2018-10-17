@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
 import shapely
+import json
 
 class sensortools(object):
     '''
@@ -181,7 +182,7 @@ class sensortools(object):
         """
         Convert a WKT Polygon to a Folium Point Location
         """
-        
+
         shp = shapely.wkt.loads(aoi)
         coords = shp.centroid.coords.xy
         x, y = coords[0][-1], coords[1][-1]
@@ -193,10 +194,28 @@ class sensortools(object):
         """
         Mapping function to show the area of a user defined AOI
         """
-        # TODO: turn WKT AOI into something folium can read
-        # TODO: calculate centroid of AOI as starting location
-        # TODO: create simple map, could add some logic to control zoom level
-        pass
+        # turn WKT AOI into something folium can read
+        shp = shapely.wkt.loads(aoi)
+        geojson = shapely.geometry.mapping(shp)
+        # calculate centroid of AOI as starting location
+        location = self._convertAOItoLocation(aoi)
+        # create simple map
+        m = folium.Map(location=aoi, zoom_start=8, tiles='Stamen Terrain')
+        folium.GeoJson(
+            geojson,
+            name='geojson'
+        ).add_to(m)
+
+        return m
+
+    def aoiToArea(self, aoi):
+        """
+        Input an AOI and calculate an area
+        """
+        shp = shapely.wkt.loads(aoi)
+        geojson = shapely.geometry.mapping(shp)
+
+
 
     def mapGB(self, gb=None, aoi=[39.742043, -104.991531]):
         """
