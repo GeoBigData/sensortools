@@ -18,6 +18,9 @@ class sensortools(object):
         self.search_df = None
 
     def _formatSensorInfo(self):
+        """
+        Formats sensor info into a pandas dataframe
+        """
         df = pd.DataFrame(columns=['Sensor', 'Resolution (m)', 'Band Count'])
         for i, (image, key) in enumerate(self._sensor_info.items()):
             df.loc[i] = [image, key['resolution'], key['band_count']]
@@ -25,6 +28,8 @@ class sensortools(object):
         return df
 
     def _sensorInfo(self):
+        # TODO: make these names match the names used by catalog search
+        # going to deviate some however given Pan/MS designations
         sensor_info = {
             'GE01_Pan' : {
                 'resolution' : 0.41,
@@ -102,7 +107,8 @@ class sensortools(object):
         Parameters
         ----------
         df : Pandas DataFrame
-            DataFrame that includes Sensor name, resolution of the sensor, and band count of the sensor
+            DataFrame that includes Sensor name, resolution of the sensor,
+            and band count of the sensor
         km2 : int
             Desired km2 to translate into GB of data
         bit_depth :
@@ -121,16 +127,17 @@ class sensortools(object):
 
     def formatSearchResults(self, search_results):
         """
-        Format the results into a pandas df. To be used in plotting functions but also useful outside of them.
+        Format the results into a pandas df. To be used in plotting functions
+        but also useful outside of them.
         """
 
         s, t = [], []
         for i, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
-        df = pd.DataFrame({'Sensor': s, 'Time': t})
-        df['Time'] = pd.to_datetime(df.Time)
-        df.sort_values(['Time'], inplace=True)
+        df = pd.DataFrame({'Sensor': s, 't': t})
+        df.sort_values(['t'], inplace=True)
+        df = df.set_index(pd.to_datetime(df.t))
         df['x'] = range(len(df))
 
         self.search_df = df
@@ -141,9 +148,9 @@ class sensortools(object):
         '''
 
         f, ax = plt.subplots(figsize=(12,6))
-        sns.despine(bottom=True, left=True)
+        sns.despine(bottom=True, le ft=True)
 
-        sns.stripplot(x="Time", y="Sensor", hue="Sensor",
+        sns.stripplot(x="t", y="Sensor", hue="Sensor",
                       data=self.search_df, dodge=True, jitter=True,
                       alpha=.25, zorder=1, size=10)
 
@@ -170,9 +177,26 @@ class sensortools(object):
 
         return None
 
-    def mapAOI(self, sensor_km2):
-        m = folium.Map(location=[39.742043, -104.991531], zoom_start=8, tiles='Stamen Terrain')
-        for i, row in sensor_km2.iterrows():
+    def mapAOI(self, aoi):
+        """
+        Mapping function to show the area of a user defined AOI
+        """
+        # TODO: turn WKT AOI into something folium can read
+        # TODO: calculate centroid of AOI as starting location
+        # TODO: create simple map, could add some logic to control zoom level
+        pass
+
+    def mapGB(self, gb=None, point_aoi=[39.742043, -104.991531]):
+        """
+        Function to map GB to sensor areas given bands and resolution
+        User can input a point lon, lat point e.g. Japan, or defaults to Denver
+        """
+        df = self.gb_to_km2(gb)
+
+        # TODO: turn these into strip type features
+        # TODO: could add some logic to control zoom level
+        m = folium.Map(location=point_aoi, zoom_start=8, tiles='Stamen Terrain')
+        for i, row in df.iterrows():
             folium.Circle(
                 radius=np.sqrt(row['Area (km2)'] / np.pi) * 1000,
                 location=[39.742043, -104.991531],
