@@ -217,8 +217,8 @@ class sensortools(object):
         loc = self._convertAOItoLocation(aoi)
         utm_def = utm.from_latlon(loc[0], loc[1])
         zone = utm_def[-2]
-        hem = utm_def[-1]
-        if hem=='S':
+
+        if loc[0] < 0:
             hem = 'south'
         else:
             hem = 'north'
