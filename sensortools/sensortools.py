@@ -210,14 +210,22 @@ class sensortools(object):
 
         return m
 
-    def _getAOIUTM(self, aoi):
+    def _getAOIProj(self, aoi):
         """
-
+        Get the UTM projection string for an AOI centroid
         """
         loc = self._convertAOItoLocation(aoi)
-        zone = utm.from_latlon(loc[0], loc[1])
+        utm_def = utm.from_latlon(loc[0], loc[1])
+        zone = utm_def[-2]
+        hem = utm_def[-1]
+        if hem=='S':
+            hem = 'south'
+        else:
+            hem = 'north'
 
-        return zone
+        p_str = '+proj=utm +zone={z} +{h} +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.format(z=zone, h=hem)
+
+        return p_str
 
     def aoiArea(self, aoi):
         """
