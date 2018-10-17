@@ -8,6 +8,8 @@ import shapely
 import json
 import utm
 import pyproj
+from functools import partial
+from shapely.ops import transform
 
 class sensortools(object):
     '''
@@ -210,33 +212,31 @@ class sensortools(object):
 
         return m
 
-    def _getAOIProj(self, aoi):
+    def aoiArea(self, aoi):
         """
         Get the UTM projection string for an AOI centroid
         """
+        # convert AOI to shape
+        shp = shapely.wkt.loads(aoi)
+        # get the centroid of the shape
         loc = self._convertAOItoLocation(aoi)
+        # find the UTM info
         utm_def = utm.from_latlon(loc[0], loc[1])
         zone = utm_def[-2]
-
+        # convert UTM zone info to something pyproj can understand
         if loc[0] < 0:
             hem = 'south'
         else:
             hem = 'north'
+        # transform the shape
+        from_p = pyproj.Proj(init='epsg:4326')
+        to_p = pyproj.Proj(proj='utm', zone=zone, ellps='WGS84', hemisphere=hem)
+        project = partial(pyproj.transform, from_p, to_p)
+        shp_utm = transform(project, shp)
+        # calculate area of projected units in km2 
+        km2 = shp_utm / 1000000.
 
-        p_str = '+proj=utm +zone={z} +{h} +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.format(z=zone, h=hem)
-
-        return p_str
-
-    def aoiArea(self, aoi):
-        """
-        Input an AOI and calculate an area
-        """
-        shp = shapely.wkt.loads(aoi)
-        geojson = shapely.geometry.mapping(shp)
-        # TODO: need to project AOI to local coords
-        # could use this: https://pypi.org/project/utm/
-        # TODO: once projected, calculate area in km2
-
+        return km2
 
     def mapGB(self, gb=None, aoi=[39.742043, -104.991531]):
         """
