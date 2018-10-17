@@ -6,3 +6,5 @@ numpy
 pyproj
 pandas
 seaborn
+json
+utm
