@@ -197,7 +197,7 @@ class sensortools(object):
         User can input a point lon, lat or the Polygon AOI from which
         a centroid  will be calculated
         """
-        # convert GB to df 
+        # convert GB to df
         df = self.gb_to_km2(gb)
 
         # if user passes in Polygon AOI, convert to Folium location
@@ -205,6 +205,8 @@ class sensortools(object):
             aoi = self._convertAOItoLocation(aoi)
 
         # TODO: turn these into strip type features
+        # TODO: make sensor features different colors
+        # TODO: add legend
         # TODO: could add some logic to control zoom level
         m = folium.Map(location=aoi, zoom_start=8, tiles='Stamen Terrain')
         for i, row in df.iterrows():
