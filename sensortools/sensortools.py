@@ -176,6 +176,12 @@ class sensortools(object):
 
         return None
 
+    def _convertAOItoLocation(self, aoi):
+        """
+        Convert a WKT Polygon to a Folium Point Location
+        """
+        pass
+
     def mapAOI(self, aoi):
         """
         Mapping function to show the area of a user defined AOI
@@ -185,20 +191,26 @@ class sensortools(object):
         # TODO: create simple map, could add some logic to control zoom level
         pass
 
-    def mapGB(self, gb=None, point_aoi=[39.742043, -104.991531]):
+    def mapGB(self, gb=None, aoi=[39.742043, -104.991531]):
         """
         Function to map GB to sensor areas given bands and resolution
-        User can input a point lon, lat point e.g. Japan, or defaults to Denver
+        User can input a point lon, lat or the Polygon AOI from which
+        a centroid  will be calculated
         """
+        # convert GB to df 
         df = self.gb_to_km2(gb)
+
+        # if user passes in Polygon AOI, convert to Folium location
+        if isinstance(aoi, str):
+            aoi = self._convertAOItoLocation(aoi)
 
         # TODO: turn these into strip type features
         # TODO: could add some logic to control zoom level
-        m = folium.Map(location=point_aoi, zoom_start=8, tiles='Stamen Terrain')
+        m = folium.Map(location=aoi, zoom_start=8, tiles='Stamen Terrain')
         for i, row in df.iterrows():
             folium.Circle(
                 radius=np.sqrt(row['Area (km2)'] / np.pi) * 1000,
-                location=[39.742043, -104.991531],
+                location=aoi,
                 popup=row['Sensor'],
                 fill=False,
             ).add_to(m)
