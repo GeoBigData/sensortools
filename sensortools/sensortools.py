@@ -135,9 +135,8 @@ class sensortools(object):
         for i, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
-        df = pd.DataFrame({'Sensor': s, 'Time': t})
-        df['Time'] = pd.to_datetime(df.Time)
-        df.sort_values(['Time'], inplace=True)
+        df = pd.DataFrame({'Sensor': s, 'Date': pd.to_datetime(t)}, index=pd.to_datetime(t))
+        df.sort_values(['Date'], inplace=True)
         df['x'] = range(len(df))
 
         self.search_df = df
@@ -150,7 +149,7 @@ class sensortools(object):
         f, ax = plt.subplots(figsize=(12,6))
         sns.despine(bottom=True, left=True)
 
-        sns.stripplot(x="t", y="Sensor", hue="Sensor",
+        sns.stripplot(x="Date", y="Sensor", hue="Sensor",
                       data=self.search_df, dodge=True, jitter=True,
                       alpha=.25, zorder=1, size=10)
 
