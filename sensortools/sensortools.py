@@ -148,7 +148,7 @@ class sensortools(object):
         '''
 
         f, ax = plt.subplots(figsize=(12,6))
-        sns.despine(bottom=True, le ft=True)
+        sns.despine(bottom=True, left=True)
 
         sns.stripplot(x="t", y="Sensor", hue="Sensor",
                       data=self.search_df, dodge=True, jitter=True,
