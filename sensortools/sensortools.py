@@ -7,6 +7,7 @@ import seaborn as sns
 import shapely
 import json
 import utm
+import pyproj
 
 class sensortools(object):
     '''
@@ -209,7 +210,7 @@ class sensortools(object):
 
         return m
 
-    def _getUTM(self, aoi):
+    def _getAOIUTM(self, aoi):
         """
 
         """
