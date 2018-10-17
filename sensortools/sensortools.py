@@ -198,7 +198,7 @@ class sensortools(object):
         shp = shapely.wkt.loads(aoi)
         geojson = shapely.geometry.mapping(shp)
         # calculate centroid of AOI as starting location
-        location = self._convertAOItoLocation(aoi)
+        aoi = self._convertAOItoLocation(aoi)
         # create simple map
         m = folium.Map(location=aoi, zoom_start=8, tiles='Stamen Terrain')
         folium.GeoJson(
