@@ -4,6 +4,7 @@ import folium
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
+import shapely
 
 class sensortools(object):
     '''
@@ -180,7 +181,13 @@ class sensortools(object):
         """
         Convert a WKT Polygon to a Folium Point Location
         """
-        pass
+        
+        shp = shapely.wkt.loads(aoi)
+        coords = shp.centroid.coords.xy
+        x, y = coords[0][-1], coords[1][-1]
+
+        # returning as lat lon as that is required by folium
+        return [y, x]
 
     def mapAOI(self, aoi):
         """
