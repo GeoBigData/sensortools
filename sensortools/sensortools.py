@@ -6,6 +6,7 @@ import matplotlib.dates as mdates
 import seaborn as sns
 import shapely
 import json
+import utm
 
 class sensortools(object):
     '''
@@ -208,13 +209,24 @@ class sensortools(object):
 
         return m
 
-    def aoiToArea(self, aoi):
+    def _getUTM(self, aoi):
+        """
+
+        """
+        loc = self._convertAOItoLocation(aoi)
+        zone = utm.from_latlon(loc[0], loc[1])
+
+        return zone
+
+    def aoiArea(self, aoi):
         """
         Input an AOI and calculate an area
         """
         shp = shapely.wkt.loads(aoi)
         geojson = shapely.geometry.mapping(shp)
-
+        # TODO: need to project AOI to local coords
+        # could use this: https://pypi.org/project/utm/
+        # TODO: once projected, calculate area in km2
 
 
     def mapGB(self, gb=None, aoi=[39.742043, -104.991531]):
