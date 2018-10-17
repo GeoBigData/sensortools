@@ -233,8 +233,8 @@ class sensortools(object):
         to_p = pyproj.Proj(proj='utm', zone=zone, ellps='WGS84', hemisphere=hem)
         project = partial(pyproj.transform, from_p, to_p)
         shp_utm = transform(project, shp)
-        # calculate area of projected units in km2 
-        km2 = shp_utm / 1000000.
+        # calculate area of projected units in km2
+        km2 = shp_utm.area / 1000000.
 
         return km2
 
