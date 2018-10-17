@@ -135,9 +135,9 @@ class sensortools(object):
         for i, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
-        df = pd.DataFrame({'Sensor': s, 't': t})
-        df.sort_values(['t'], inplace=True)
-        df = df.set_index(pd.to_datetime(df.t))
+        df = pd.DataFrame({'Sensor': s, 'Time': t})
+        df['Time'] = pd.to_datetime(df.Time)
+        df.sort_values(['Time'], inplace=True)
         df['x'] = range(len(df))
 
         self.search_df = df
