@@ -147,7 +147,17 @@ class sensortools(object):
 
         self.search_df = df
 
-    def searchPlot(self):
+    def searchBarPlot(self):
+        """
+        Bar Plot of the count of sensor images in search
+        """
+        f, ax = plt.subplots(figsize=(15,6))
+        sns.countplot(x='Sensor', data=self.search_df)
+        ax.set_ylabel('Image Count')
+
+        return None
+
+    def searchScatterPlot(self):
         '''
         Function to plot out the results of an image/AOI search
         '''
