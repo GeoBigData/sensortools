@@ -306,6 +306,7 @@ class sensortools(object):
         """
         Get the UTM projection string for an AOI centroid
         """
+        shp = shapely.wkt.loads(aoi)
         to_p = self._getUTMProj(aoi)
         from_p = pyproj.Proj(init='epsg:4326')
 
