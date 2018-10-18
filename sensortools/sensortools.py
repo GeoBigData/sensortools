@@ -20,8 +20,6 @@ class sensortools(object):
         self._sensor_info = self._sensorInfo()
         # format the sensor infomation into pandas df
         self.sensors = self._formatSensorInfo()
-        # formatted seach results from catalog search
-        self.search_df = None
 
     def _formatSensorInfo(self):
         """
@@ -183,19 +181,19 @@ class sensortools(object):
         df.sort_values(['Date'], inplace=True)
         df['x'] = range(len(df))
 
-        self.search_df = df
+        return df
 
-    def searchBarPlot(self):
+    def searchBarPlot(self, df):
         """
         Bar Plot of the count of sensor images in search
         """
         f, ax = plt.subplots(figsize=(15,6))
-        sns.countplot(x='Sensor', data=self.search_df)
+        sns.countplot(x='Sensor', data=df)
         ax.set_ylabel('Image Count')
 
         return None
 
-    def searchScatterPlot(self):
+    def searchScatterPlot(self, df):
         '''
         Function to plot out the results of an image/AOI search
         '''
@@ -204,7 +202,7 @@ class sensortools(object):
         sns.despine(bottom=True, left=True)
 
         sns.stripplot(x="Date", y="Sensor", hue="Sensor",
-                      data=self.search_df, dodge=True, jitter=True,
+                      data=df, dodge=True, jitter=True,
                       alpha=.25, zorder=1, size=10)
 
         years = mdates.YearLocator()   # every year
@@ -217,7 +215,7 @@ class sensortools(object):
         ax.xaxis.set_major_formatter(yearsFmt)
         ax.xaxis.set_minor_locator(months)
 
-        s = self.search_df.groupby(['Sensor']).count()
+        s = df.groupby(['Sensor']).count()
 
         _= ax.set_yticklabels(s.index + ' Count: ' + s.x.map(str))
         _= ax.get_yaxis().set_visible(False)
@@ -260,7 +258,7 @@ class sensortools(object):
 
         return m
 
-    def mapSearchFootprintsAOI(self, aoi):
+    def mapSearchFootprintsAOI(self, df, aoi):
         """
         Map the footprints of the results in relation to the AOI
         """
@@ -274,7 +272,7 @@ class sensortools(object):
             geojson,
             name='geojson'
         ).add_to(m)
-        for i, row in self.search_df.iterrows():
+        for i, row in df.iterrows():
             shp = shapely.wkt.loads(row['Footprint WKT'])
             geojson = shapely.geometry.mapping(shp)
             folium.GeoJson(
