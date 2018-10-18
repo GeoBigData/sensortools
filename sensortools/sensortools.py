@@ -137,11 +137,21 @@ class sensortools(object):
         but also useful outside of them.
         """
 
-        s, t = [], []
+        s, t, c, n, e, f = [], [], [], [], [], []
         for i, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
-        df = pd.DataFrame({'Sensor': s, 'Date': pd.to_datetime(t)}, index=pd.to_datetime(t))
+            c.append(re['properties']['cloudCover'])
+            n.append(re['properties']['offNadirAngle'])
+            e.append(re['properties']['sunElevation'])
+            f.append(re['properties']['footprintWkt'])
+        df = pd.DataFrame({'Sensor': s,
+            'Date': pd.to_datetime(t),
+            'Cloud Cover': c,
+            'Off Nadir Angle': n,
+            'Sun Elevation': e,
+            'Footprint WKT': f}, 
+            index=pd.to_datetime(t))
         df.sort_values(['Date'], inplace=True)
         df['x'] = range(len(df))
 
