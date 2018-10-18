@@ -163,7 +163,7 @@ class sensortools(object):
         """
 
         s, t, c, n, e, f, i = [], [], [], [], [], [], []
-        for i, re in enumerate(search_results):
+        for j, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
             c.append(re['properties']['cloudCover'])
