@@ -194,6 +194,15 @@ class sensortools(object):
 
         return None
 
+    def searchSensorComparePlot(self, df, var1=None, var2=None):
+        """
+        Compare multiple sensors and variables
+        """
+        g = sns.FacetGrid(df, col="Sensor")
+        g.map(sns.kdeplot, var1, var2)
+
+        return None 
+
     def searchBarPlot(self, df):
         """
         Bar Plot of the count of sensor images in search
