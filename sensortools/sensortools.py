@@ -10,6 +10,8 @@ import utm
 import pyproj
 from functools import partial
 from shapely.ops import transform
+import warnings
+warnings.filterwarnings("ignore")
 
 class sensortools(object):
     '''
@@ -201,7 +203,7 @@ class sensortools(object):
         g = sns.FacetGrid(df, col="Sensor")
         g.map(sns.kdeplot, var1, var2)
 
-        return None 
+        return None
 
     def searchBarPlot(self, df):
         """
