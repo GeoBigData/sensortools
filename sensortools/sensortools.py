@@ -150,7 +150,7 @@ class sensortools(object):
             'Cloud Cover': c,
             'Off Nadir Angle': n,
             'Sun Elevation': e,
-            'Footprint WKT': f}, 
+            'Footprint WKT': f},
             index=pd.to_datetime(t))
         df.sort_values(['Date'], inplace=True)
         df['x'] = range(len(df))
