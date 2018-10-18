@@ -131,13 +131,38 @@ class sensortools(object):
 
         return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
-    def formatSearchResults(self, search_results):
+    def _fpaoiinter(self, fp_wkt, aoi):
+        """
+        Calculate the footprint coverage of the AOI
+        """
+        # get the projection for area calculations
+        to_p = self._getUTMProj(aoi)
+        from_p = pyproj.Proj(init='epsg:4326')
+        project = partial(pyproj.transform, from_p, to_p)
+
+        # The projected aoi
+        aoi_shp = shapely.wkt.loads(aoi)
+        aoi_shp_prj = transform(project, aoi_shp)
+
+        # The projected footprint
+        ft_shp = shapely.wkt.loads(fp_wkt)
+        ft_shp_prj = transform(project, ft_shp)
+
+        # Intersect the two shapes
+        inter_km2 = aoi_shp_prj.intersection(ft_shp_prj).area / 1000000.
+
+        # Calculate area in km2
+        pct = inter_km2 / self.aoiArea(aoi) * 100.
+
+        return pct
+
+    def formatSearchResults(self, search_results, aoi):
         """
         Format the results into a pandas df. To be used in plotting functions
         but also useful outside of them.
         """
 
-        s, t, c, n, e, f = [], [], [], [], [], []
+        s, t, c, n, e, f, i = [], [], [], [], [], [], []
         for i, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
@@ -145,6 +170,8 @@ class sensortools(object):
             n.append(re['properties']['offNadirAngle'])
             e.append(re['properties']['sunElevation'])
             f.append(re['properties']['footprintWkt'])
+            i.append(self._fpaoiinter(re['properties']['footprintWkt'], aoi))
+
         df = pd.DataFrame({'Sensor': s,
             'Date': pd.to_datetime(t),
             'Cloud Cover': c,
@@ -232,9 +259,32 @@ class sensortools(object):
 
         return m
 
-    def aoiArea(self, aoi):
+    def mapSearchFootprintsAOI(self, aoi):
         """
-        Get the UTM projection string for an AOI centroid
+        Map the footprints of the results in relation to the AOI
+        """
+        # TODO: this needs better symbology
+
+        shp = shapely.wkt.loads(aoi)
+        geojson = shapely.geometry.mapping(shp)
+        loc = self._convertAOItoLocation(aoi)
+        m = folium.Map(location=loc, zoom_start=8, tiles='Stamen Terrain')
+        folium.GeoJson(
+            geojson,
+            name='geojson'
+        ).add_to(m)
+        for i, row in self.search_df.iterrows():
+            shp = shapely.wkt.loads(row['Footprint WKT'])
+            geojson = shapely.geometry.mapping(shp)
+            folium.GeoJson(
+                geojson,
+                name=str(i)
+            ).add_to(m)
+        return m
+
+    def _getUTMProj(self, aoi):
+        """
+        Determine the UTM Proj for an AOI
         """
         # convert AOI to shape
         shp = shapely.wkt.loads(aoi)
@@ -248,9 +298,17 @@ class sensortools(object):
             hem = 'south'
         else:
             hem = 'north'
-        # transform the shape
-        from_p = pyproj.Proj(init='epsg:4326')
         to_p = pyproj.Proj(proj='utm', zone=zone, ellps='WGS84', hemisphere=hem)
+
+        return to_p
+
+    def aoiArea(self, aoi):
+        """
+        Get the UTM projection string for an AOI centroid
+        """
+        to_p = self._getUTMProj(aoi)
+        from_p = pyproj.Proj(init='epsg:4326')
+
         project = partial(pyproj.transform, from_p, to_p)
         shp_utm = transform(project, shp)
         # calculate area of projected units in km2
