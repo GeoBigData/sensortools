@@ -183,6 +183,17 @@ class sensortools(object):
 
         return df
 
+    def searchVarPlot(self, df, var1=None, var2=None, sensor=None):
+        """
+        Create a Jointplot of two variables. Optionally, subset by sensor
+        """
+        if sensor:
+            df = df[[df.Sensor==sensor]]
+        g = sns.jointplot(df[var1], df[var2], kind='kde')
+        g.ax_joint.legend_.remove()
+
+        return None
+
     def searchBarPlot(self, df):
         """
         Bar Plot of the count of sensor images in search
