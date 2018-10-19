@@ -285,7 +285,7 @@ class sensortools(object):
         Style Function for Footprints
         """
         return {
-            'fillOpacity': 0.0,
+            'fillOpacity': 0.1,
             'weight': 0.1,
             'color': '#red'
         }
