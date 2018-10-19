@@ -280,6 +280,16 @@ class sensortools(object):
 
         return m
 
+    def _fpStyleFunction(self, feature):
+        """
+        Style Function for Footprints
+        """
+        return {
+            'fillOpacity': 0.0,
+            'weight': 0.1,
+            'color': '#red'
+        }
+
     def mapSearchFootprintsAOI(self, df, aoi):
         """
         Map the footprints of the results in relation to the AOI
@@ -299,6 +309,7 @@ class sensortools(object):
             geojson = shapely.geometry.mapping(shp)
             folium.GeoJson(
                 geojson,
+                style_function=self._fpStyleFunction
                 name=str(i)
             ).add_to(m)
         return m
