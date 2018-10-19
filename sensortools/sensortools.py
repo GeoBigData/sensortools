@@ -280,7 +280,7 @@ class sensortools(object):
 
         return m
 
-    def _fpStyleFunction(feature):
+    def _fpStyleFunction(self, feature):
         """
         Style Function for Footprints
         """
