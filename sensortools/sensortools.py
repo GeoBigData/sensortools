@@ -280,14 +280,16 @@ class sensortools(object):
 
         return m
 
-    def _fpStyleFunction(self, feature):
+    def _fpStyleFunction(feature):
         """
         Style Function for Footprints
         """
         return {
-            'fillOpacity': 0.1,
-            'weight': 0.1,
-            'color': '#red'
+            'fillOpacity': 0.0,
+            'weight': 1,
+            'fillColor': 'red',
+            'color': 'red',
+            'opacity': 0.5
         }
 
     def mapSearchFootprintsAOI(self, df, aoi):
