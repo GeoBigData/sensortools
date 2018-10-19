@@ -309,7 +309,7 @@ class sensortools(object):
             geojson = shapely.geometry.mapping(shp)
             folium.GeoJson(
                 geojson,
-                style_function=self._fpStyleFunction
+                style_function=self._fpStyleFunction,
                 name=str(i)
             ).add_to(m)
         return m
