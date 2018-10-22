@@ -47,11 +47,6 @@ class sensortools(object):
                 'band_count' : 4,
                 'plot_color' : '#fdae6b'
             },
-#             'GE01_Pansharpened' : {
-#                 'resolution' : 0.41,
-#                 'band_count' : 
-#                 'plot_color' : '#e6550d'
-#             },
             'WV01_Pan' : {
                 'resolution' : 0.5,
                 'band_count' : 1,
@@ -67,11 +62,6 @@ class sensortools(object):
                 'band_count' : 8,
                 'plot_color' : '#9ecae1'
             },
-#             'WV02_Pansharpened' : {
-#                 'resolution' : 0.46,
-#                 'band_count' : ,
-#                 'plot_color' : '#3182bd'
-#             },
             'WV03_Pan' : {
                 'resolution' : 0.31,
                 'band_count' : 1,
@@ -82,11 +72,6 @@ class sensortools(object):
                 'band_count' : 8,
                 'plot_color' : '#74c476'
             },
-#             'WV03_Pansharpened' : {
-#                 'resolution' : 0.31,
-#                 'band_count' : 
-#                 'plot_color' : '#238b45'
-#             },
             'WV03_SWIR' : {
                 'resolution' : 3.7,
                 'band_count' : 8,
@@ -101,10 +86,6 @@ class sensortools(object):
                 'resolution' : 1.24,
                 'band_count' : 4,
                 'plot_color' : '#fdae6b'}
-#             'WV04_Pansharpened' : {
-#                 'resolution' : 0.31,
-#                 'band_count' : ,
-#                 'plot_color' : '#e6550d'
             }
 
         return sensor_info
