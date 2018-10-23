@@ -345,6 +345,18 @@ class sensortools(object):
             'opacity': 0.5
         }
 
+    def _fpUnionStyleFunction(self, feature):
+        """
+        Style Function for Unioned Footprints
+        """
+        return {
+            'fillOpacity': 0.75,
+            'weight': 1,
+            'fillColor': 'green',
+            'color': 'green',
+            'opacity': 0.5
+        }
+
     def mapSearchFootprintsAOI(self, df, aoi):
         """
         Map the footprints of the results in relation to the AOI
@@ -372,8 +384,7 @@ class sensortools(object):
         fp_json = self._aoiFootprintCalculations(df, aoi)[1]
         folium.GeoJson(
             fp_json,
-            color='green',
-            fillOpacity=0.75
+            style_function=self._fpUnionStyleFunction
         ).add_to(m)
         return m
 
