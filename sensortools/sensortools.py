@@ -145,7 +145,7 @@ class sensortools(object):
 
     def _fpaoiinter(self, fp_wkt, aoi):
         """
-        Calculate the footprint coverage of the AOI
+        Calculate the individual footprint coverage of the AOI
         """
         # get the projection for area calculations
         to_p = self._getUTMProj(aoi)
@@ -168,10 +168,10 @@ class sensortools(object):
 
         return pct
 
-    def aoiFootprintCoverage(self, df, aoi):
+    def _aoiFootprintCalculations(self, df, aoi):
         """
         Given an AOI and search results, determine percent of the AOI that is
-        covered by the footprints
+        covered by all footprints
         """
         # projection info
         to_p = self._getUTMProj(aoi)
@@ -193,17 +193,28 @@ class sensortools(object):
         footprints_prj = transform(project, footprints)
 
         # perform intersection and calculate area
-        inter_km2 = aoi_shp_prj.intersection(footprints_prj).area / 1000000.
+        inter_shp_prj = aoi_shp_prj.intersection(footprints_prj)
+        inter_km2 = inter_shp_prj.area / 1000000.
         pct = inter_km2 / aoi_km2 * 100.
 
-        return pct
+        # project back to wgs84/wkt for mapping
+        project_reverse = partial(pyproj.transform, to_p, from_p)
+        inter_shp = transform(project_reverse, inter_shp_prj)
+        inter_json = shapely.geometry.mapping(inter_shp)
+
+        return [pct, inter_json]
+
+    def aoiFootprintPctCoverage(self, df, aoi):
+        """
+        Return the percent area covered from aoi footprint calculation
+        """
+        return self._aoiFootprintCalculations(df, aoi)[0]
 
     def formatSearchResults(self, search_results, aoi):
         """
         Format the results into a pandas df. To be used in plotting functions
         but also useful outside of them.
         """
-
         s, t, c, n, e, f, i = [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
             s.append(re['properties']['sensorPlatformName'])
@@ -356,6 +367,14 @@ class sensortools(object):
                 style_function=self._fpStyleFunction,
                 name=str(i)
             ).add_to(m)
+
+        # add the union footprints to map
+        fp_json = self._aoiFootprintCalculations(df, aoi)[1]
+        folium.GeoJson(
+            fp_json,
+            color='green',
+            fillOpacity=0.75
+        ).add_to(m)
         return m
 
     def _getUTMProj(self, aoi):
@@ -393,7 +412,7 @@ class sensortools(object):
 
         return km2
 
-    
+
     sensor_colors = {
         'GE01_Pan' : {
             'plot_color' : '#fd8d3c'
@@ -437,7 +456,7 @@ class sensortools(object):
         'WV04_Pansharpened' : {
             'plot_color' : '#54278f'
         }}
-    
+
 
     def mapGB(self, gb=None, aoi=[39.742043, -104.991531]):
         """
@@ -447,13 +466,13 @@ class sensortools(object):
         """
         # convert GB to df
         df = self.gb_to_km2(gb)
-        
+
         df = df.sort_values(by=['Area (km2)'], ascending=False)
 
         # if user passes in Polygon AOI, convert to Folium location
         if isinstance(aoi, str):
             aoi = self._convertAOItoLocation(aoi)
-            
+
         # TODO: add legend
         # TODO: could add some logic to control zoom level
         # TODO: add more info to popup, such as area
