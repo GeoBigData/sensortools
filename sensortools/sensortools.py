@@ -156,6 +156,36 @@ class sensortools(object):
 
         return pct
 
+    def aoiFootprintCoverage(self, df, aoi):
+        """
+        Given an AOI and search results, determine percent of the AOI that is
+        covered by the footprints
+        """
+        # projection info
+        to_p = self._getUTMProj(aoi)
+        from_p = pyproj.Proj(init='epsg:4326')
+        project = partial(pyproj.transform, from_p, to_p)
+
+        # project the AOI, calc area
+        aoi_shp = shapely.wkt.loads(aoi)
+        aoi_shp_prj = transform(project, aoi_shp)
+        aoi_km2 = aoi_shp_prj.area / 1000000.
+
+        # union all the footprint shapes
+        shps = []
+        for i, row in df.iterrows():
+            shps.append(shapely.wkt.loads(row['Footprint WKT']))
+        footprints = shapely.ops.cascade_union(shps)
+
+        # project the footprint union
+        footprints_prj = transform(project, footprints)
+
+        # perform intersection and calculate area
+        inter_km2 = aoi_shp_prj.intersection(footprints_prj).area / 1000000.
+        pct = inter_km2 / aoi_km2 * 100.
+
+        return pct
+
     def formatSearchResults(self, search_results, aoi):
         """
         Format the results into a pandas df. To be used in plotting functions
