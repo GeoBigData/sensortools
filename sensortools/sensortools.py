@@ -175,7 +175,7 @@ class sensortools(object):
         shps = []
         for i, row in df.iterrows():
             shps.append(shapely.wkt.loads(row['Footprint WKT']))
-        footprints = shapely.ops.cascade_union(shps)
+        footprints = shapely.ops.cascaded_union(shps)
 
         # project the footprint union
         footprints_prj = transform(project, footprints)
