@@ -353,7 +353,8 @@ class sensortools(object):
             geojson = shapely.geometry.mapping(shp)
             folium.GeoJson(
                 geojson,
-                style_function=self._fpStyleFunction,
+                color=self._sensor_info[row['Sensor']['plot_color']],
+                #style_function=self._fpStyleFunction,
                 name=str(i)
             ).add_to(m)
         return m
@@ -393,7 +394,7 @@ class sensortools(object):
 
         return km2
 
-    
+
     sensor_colors = {
         'GE01_Pan' : {
             'plot_color' : '#fd8d3c'
@@ -437,7 +438,7 @@ class sensortools(object):
         'WV04_Pansharpened' : {
             'plot_color' : '#54278f'
         }}
-    
+
 
     def mapGB(self, gb=None, aoi=[39.742043, -104.991531]):
         """
@@ -447,13 +448,13 @@ class sensortools(object):
         """
         # convert GB to df
         df = self.gb_to_km2(gb)
-        
+
         df = df.sort_values(by=['Area (km2)'], ascending=False)
 
         # if user passes in Polygon AOI, convert to Folium location
         if isinstance(aoi, str):
             aoi = self._convertAOItoLocation(aoi)
-            
+
         # TODO: add legend
         # TODO: could add some logic to control zoom level
         # TODO: add more info to popup, such as area
