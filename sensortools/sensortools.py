@@ -245,7 +245,11 @@ class sensortools(object):
         if sensor:
             df = df[df.Sensor==sensor]
         g = sns.jointplot(df[var1], df[var2], kind='kde')
-        g.ax_joint.legend_.remove()
+        try:
+            # seems to fail on GBDX Notebooks
+            g.ax_joint.legend_.remove()
+        except:
+            pass
 
         return None
 
@@ -384,7 +388,8 @@ class sensortools(object):
         fp_json = self._aoiFootprintCalculations(df, aoi)[1]
         folium.GeoJson(
             fp_json,
-            style_function=self._fpUnionStyleFunction
+            style_function=self._fpUnionStyleFunction,
+
         ).add_to(m)
         return m
 
