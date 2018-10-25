@@ -215,8 +215,9 @@ class sensortools(object):
         Format the results into a pandas df. To be used in plotting functions
         but also useful outside of them.
         """
-        s, t, c, n, e, f, i = [], [], [], [], [], [], []
+        cat, s, t, c, n, e, f, i = [], [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
+            cat.append(re['identifier'])
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
             c.append(re['properties']['cloudCover'])
@@ -225,7 +226,9 @@ class sensortools(object):
             f.append(re['properties']['footprintWkt'])
             i.append(self._fpaoiinter(re['properties']['footprintWkt'], aoi))
 
-        df = pd.DataFrame({'Sensor': s,
+        df = pd.DataFrame({
+            'catalog_id': cat,
+            'Sensor': s,
             'Date': pd.to_datetime(t),
             'Cloud Cover': c,
             'Off Nadir Angle': n,
