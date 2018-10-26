@@ -210,10 +210,10 @@ class sensortools(object):
         cover for the AOI (instead of entire strip)
         """
         try:
-            with ('~/duc-api.txt', 'r') as a:
+            with open('duc-api.txt', 'r') as a:
                 api_key = a.readlines()[0].rstrip()
         except:
-            print('Could not find DUC API key in ~/.duc-api.txt')
+            print('Could not find DUC API key in ~/duc-api.txt')
         # search the results, do not submit catids with 0 cloud cover
         catids = df[df['Cloud Cover'] > 0].catalog_id.values
 
