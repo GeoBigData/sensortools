@@ -210,7 +210,7 @@ class sensortools(object):
         cover for the AOI (instead of entire strip)
         """
         try:
-            with ('~/.duc-api.txt', 'r') as a:
+            with ('~/duc-api.txt', 'r') as a:
                 api_key = a.readlines()[0].rstrip()
         except:
             print('Could not find DUC API key in ~/.duc-api.txt')
