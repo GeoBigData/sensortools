@@ -225,7 +225,7 @@ class sensortools(object):
         }
         data = {
             'outFields': '*',
-            'where':"image_identifier IN ({cat})".format(cat="'" + "','".join(catids) + "'")
+            'where':"image_identifier IN ({cat})".format(cat="'" + "','".join(catids) + "'"),
             'outSR':'4326',
             'f':'geojson'
         }
