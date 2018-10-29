@@ -214,7 +214,7 @@ class sensortools(object):
             with open('duc-api.txt', 'r') as a:
                 api_key = a.readlines()[0].rstrip()
         except:
-            print('Could not find DUC API key in ~/duc-api.txt')
+            print('Could not find DUC API key in ./duc-api.txt')
         # search the results, do not submit catids with 0 cloud cover
         catids = df[df['Cloud Cover'] > 0].catalog_id.values
 
@@ -271,6 +271,7 @@ class sensortools(object):
             except:
                 cloud_prj = cloud_prj.buffer(0.0)
                 inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
+                
             inter_km2 = inter_shp_prj.area / 1000000.
             pct = inter_km2 / aoi_fp_inter_km2 * 100.
 
