@@ -34,9 +34,35 @@ class sensortools(object):
 
         return df
 
+    def createAOI(self, latitude, longitude, area_km2, shape='circle'):
+        """
+        Create a WKT AOI from a lat, lon, area
+        """
+        # create the point goem
+        pt = shapely.geometry.Point(latitude, longitude)
+
+        # create the UTM projection
+        to_p = self._getLLUTMProj(latitude, longitude)
+        from_p = pyproj.Proj(init='epsg:4326')
+        project = partial(pyproj.transform, from_p, to_p)
+        project_reverse = partial(pyproj.transform, to_p, from_p)
+
+        # transform the point to UTM and buffer
+        pt_prj = transform(project, pt)
+
+        if shape=='circle':
+            # calculate desired buffer size
+            radius = np.sqrt(area_km2 / np.pi) * 1000
+            pt_buffer = pt_prj.buffer(area)
+            pt_buffer_wgs = transform(project_reverse, pt_buffer)
+        elif shape=='square':
+            pass
+
+        return pt_buffer_wgs.wkt
+
     def setSensorResolution(self, sensor, resolution):
         """
-        Method to change the resolution of the sensor 
+        Method to change the resolution of the sensor
         """
         self.sensors.loc[self.sensors['Sensor']==sensor, 'Resolution (m)'] = resolution
 
@@ -488,6 +514,22 @@ class sensortools(object):
         loc = self._convertAOItoLocation(aoi)
         # find the UTM info
         utm_def = utm.from_latlon(loc[0], loc[1])
+        zone = utm_def[-2]
+        # convert UTM zone info to something pyproj can understand
+        if loc[0] < 0:
+            hem = 'south'
+        else:
+            hem = 'north'
+        to_p = pyproj.Proj(proj='utm', zone=zone, ellps='WGS84', hemisphere=hem)
+
+        return to_p
+
+    def _getLLUTMProj(self, latitude, longitude):
+        """
+        Determine the UTM Proj for a LatLong
+        """
+        # find the UTM info
+        utm_def = utm.from_latlon(latitude, longitude)
         zone = utm_def[-2]
         # convert UTM zone info to something pyproj can understand
         if loc[0] < 0:
