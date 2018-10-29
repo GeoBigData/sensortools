@@ -53,7 +53,7 @@ class sensortools(object):
         if shape=='circle':
             # calculate desired buffer size
             radius = np.sqrt(area_km2 / np.pi) * 1000
-            pt_buffer = pt_prj.buffer(area)
+            pt_buffer = pt_prj.buffer(radius)
             pt_buffer_wgs = transform(project_reverse, pt_buffer)
         elif shape=='square':
             pass
