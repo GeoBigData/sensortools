@@ -271,7 +271,7 @@ class sensortools(object):
             except:
                 cloud_prj = cloud_prj.buffer(0.0)
                 inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
-                
+
             inter_km2 = inter_shp_prj.area / 1000000.
             pct = inter_km2 / aoi_fp_inter_km2 * 100.
 
