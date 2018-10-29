@@ -35,6 +35,9 @@ class sensortools(object):
         return df
 
     def setSensorResolution(self, sensor, resolution):
+        """
+        Method to change the resolution of the sensor 
+        """
         self.sensors.loc[self.sensors['Sensor']==sensor, 'Resolution (m)'] = resolution
 
     def _sensorInfo(self):
