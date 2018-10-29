@@ -34,6 +34,9 @@ class sensortools(object):
 
         return df
 
+    def setSensorResolution(self, sensor, resolution):
+        self.sensors.loc[self.sensors['Sensor']==sensor, 'resolution'] = resolution
+
     def _sensorInfo(self):
         # TODO: make these names match the names used by catalog search
         # going to deviate some however given Pan/MS designations
