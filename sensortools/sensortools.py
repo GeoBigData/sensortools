@@ -39,7 +39,7 @@ class sensortools(object):
         Create a WKT AOI from a lat, lon, area
         """
         # create the point goem
-        pt = shapely.geometry.Point(latitude, longitude)
+        pt = shapely.geometry.Point(longitude, latitude)
 
         # create the UTM projection
         to_p = self._getLLUTMProj(latitude, longitude)
