@@ -248,23 +248,31 @@ class sensortools(object):
 
         # iterate over the clouds and perform cloud cover percent
         for feature in clouds['features']:
-            # extract the clouds and conver to shape
-            cloud = shapely.geometry.shape(feature['geometry'])
-
             # get catalog id
             c = feature['properties']['image_identifier']
 
-            # project the clouds
+            # get the footprint shape
+            fp = shapely.wkt.loads(df.loc[df['catalog_id']==c,
+                    'Footprint WKT'].values[0])
+            fp_prj = transform(project, fp)
+
+            # intersect the AOI with the footprint
+            # using this as intersection with clouds
+            aoi_fp_inter = aoi_shp_prj.intersection(fp_prj)
+            aoi_fp_inter_km2 = aoi_fp_inter.area / 1000000.
+
+            # extract the clouds and conver to shape
+            cloud = shapely.geometry.shape(feature['geometry'])
             cloud_prj = transform(project, cloud)
 
             # perform intersection and calculate area
             try:
-                inter_shp_prj = aoi_shp_prj.intersection(cloud_prj)
+                inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
             except:
                 cloud_prj = cloud_prj.buffer(0.0)
-                inter_shp_prj = aoi_shp_prj.intersection(cloud_prj)
+                inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
             inter_km2 = inter_shp_prj.area / 1000000.
-            pct = inter_km2 / aoi_km2 * 100.
+            pct = inter_km2 / aoi_fp_inter_km2 * 100.
 
             # update the dataframe
             df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
