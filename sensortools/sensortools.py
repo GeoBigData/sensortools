@@ -532,7 +532,7 @@ class sensortools(object):
         utm_def = utm.from_latlon(latitude, longitude)
         zone = utm_def[-2]
         # convert UTM zone info to something pyproj can understand
-        if loc[0] < 0:
+        if latitude < 0:
             hem = 'south'
         else:
             hem = 'north'
