@@ -316,7 +316,7 @@ class sensortools(object):
 
             # update the dataframe
             df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
-            df.loc[df['catalog_id']==c], 'Cloud WKT'] = cloud.wkt
+            df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
 
         return df
 
