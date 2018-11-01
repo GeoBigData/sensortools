@@ -60,6 +60,12 @@ class sensortools(object):
 
         return pt_buffer_wgs.wkt
 
+    def createAOIFromGeoJSON(self, geojson, epsg):
+        """
+        Create a simplified WKT AOI from a GeoJSON File
+        """
+        pass
+
     def setSensorResolution(self, sensor, resolution):
         """
         Method to change the resolution of the sensor
@@ -277,6 +283,7 @@ class sensortools(object):
 
         # add column to search df
         df['AOI Cloud Cover'] = 0
+        df['Cloud WKT'] = ''
 
         # iterate over the clouds and perform cloud cover percent
         for feature in clouds['features']:
@@ -309,6 +316,7 @@ class sensortools(object):
 
             # update the dataframe
             df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
+            df.loc[df['catalog_id']==c], 'Cloud WKT'] = cloud.wkt
 
         return df
 
