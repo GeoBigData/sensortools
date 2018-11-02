@@ -116,6 +116,11 @@ class sensortools(object):
                 'band_count' : 8,
                 'plot_color' : '#edf8e9'
             },
+            'WV03_PanSharp' : {
+                'resolution' : 0.31,
+                'band_count' : 3,
+                'plot_color' : '#edf8e9'
+            },
             'WV04_Pan' : {
                 'resolution' : 0.31,
                 'band_count' : 1,
