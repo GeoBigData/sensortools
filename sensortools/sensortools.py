@@ -119,7 +119,7 @@ class sensortools(object):
             'WV03_PanSharp' : {
                 'resolution' : 0.31,
                 'band_count' : 3,
-                'plot_color' : '#edf8e9'
+                'plot_color' : '#238b45'
             },
             'WV04_Pan' : {
                 'resolution' : 0.31,
@@ -597,7 +597,7 @@ class sensortools(object):
         'WV03_MS' : {
             'plot_color' : '#74c476'
         },
-        'WV03_Pansharpened' : {
+        'WV03_PanSharp' : {
             'plot_color' : '#238b45'
         },
         'WV03_SWIR' : {
