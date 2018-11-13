@@ -79,61 +79,61 @@ class sensortools(object):
             'GE01_Pan' : {
                 'resolution' : 0.41,
                 'band_count' : 1,
-                'plot_color' : '#fee6ce'
+                'plot_color' : '#fd8d3c'
             },
             'GE01_MS' : {
                 'resolution' : 1.64,
                 'band_count' : 4,
-                'plot_color' : '#fdae6b'
+                'plot_color' : '#fdbe85'
             },
             'WV01_Pan' : {
                 'resolution' : 0.5,
                 'band_count' : 1,
-                'plot_color' : '#756bb1'
+                'plot_color' : '#969696'
             },
             'WV02_Pan' : {
                 'resolution' : 0.46,
                 'band_count' : 1,
-                'plot_color' : '#deebf7'
+                'plot_color' : '#3182bd'
             },
             'WV02_MS' : {
                 'resolution' : 1.85,
                 'band_count' : 8,
-                'plot_color' : '#9ecae1'
+                'plot_color' : '#6baed6'
             },
             'WV03_Pan' : {
                 'resolution' : 0.31,
                 'band_count' : 1,
-                'plot_color' : '#bae4b3'
+                'plot_color' : '#006d2c'
             },
             'WV03_MS' : {
                 'resolution' : 1.24,
                 'band_count' : 8,
-                'plot_color' : '#74c476'
+                'plot_color' : '#31a354'
             },
             'WV03_SWIR' : {
                 'resolution' : 3.7,
                 'band_count' : 8,
-                'plot_color' : '#edf8e9'
+                'plot_color' : '#74c476'
             },
             'WV03_PanSharp' : {
                 'resolution' : 0.31,
                 'band_count' : 3,
-                'plot_color' : '#238b45'
+                'plot_color' : '#bae4b3'
             },
             'WV04_Pan' : {
                 'resolution' : 0.31,
                 'band_count' : 1,
-                'plot_color' : '#fee6ce'
+                'plot_color' : '#756bb1'
             },
             'WV04_MS' : {
                 'resolution' : 1.24,
                 'band_count' : 4,
-                'plot_color' : '#fdae6b'}
+                'plot_color' : '#9e9ac8'}
             }
 
         return sensor_info
-        
+
     def gb_to_km2(self, gb, bit_depth=32):
         """
         Function to convert GB of data into sensor aerial coverage (km2)
