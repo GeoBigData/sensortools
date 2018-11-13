@@ -477,11 +477,11 @@ class sensortools(object):
         Style Function for Footprints
         """
         return {
-            'fillOpacity': 0.75,
+            'fillOpacity': 0.5,
             'weight': 1,
             'fillColor': 'blue',
             'color': 'blue',
-            'opacity': 0.75
+            'opacity': 0.5
         }
 
     def _fpUnionStyleFunction(self, feature):
@@ -559,7 +559,7 @@ class sensortools(object):
                 style_function=self._CloudStyleFunction,
                 name=str(i)
             ).add_to(m)
-            
+
         return m
 
     def _getUTMProj(self, aoi):
