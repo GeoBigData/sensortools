@@ -472,6 +472,18 @@ class sensortools(object):
             'opacity': 0.5
         }
 
+    def _CloudStyleFunction(self, feature):
+        """
+        Style Function for Footprints
+        """
+        return {
+            'fillOpacity': 0.75,
+            'weight': 1,
+            'fillColor': 'blue',
+            'color': 'blue',
+            'opacity': 0.75
+        }
+
     def _fpUnionStyleFunction(self, feature):
         """
         Style Function for Unioned Footprints
@@ -488,8 +500,7 @@ class sensortools(object):
         """
         Map the footprints of the results in relation to the AOI
         """
-        # TODO: this needs better symbology
-
+        
         shp = shapely.wkt.loads(aoi)
         geojson = shapely.geometry.mapping(shp)
         loc = self._convertAOItoLocation(aoi)
@@ -515,6 +526,39 @@ class sensortools(object):
 
         ).add_to(m)
         return m
+
+    def mapClouds(self, df, aoi):
+        """
+        Given formatted search results with cloud cover WKT, map against AOI
+        Caution: should limit how many results are mapped
+        """
+
+        shp = shapely.wkt.loads(aoi)
+        geojson = shapely.geometry,mapping(shp)
+        loc = self._convertAOItoLocation(aoi)
+        m = folium.Map(location=loc, zoom_start=8, tiles='Stamen Terrain')
+        folium.GeoJson(
+            geojson,
+            name='geojson'
+        ).add_to(m)
+
+        for i, row in df.iterrows():
+            shp = shapely.wkt.loads(row['Footprint WKT'])
+            geojson = shapely.geometry.mapping(shp)
+            folium.GeoJson(
+                geojson,
+                style_function=self._fpStyleFunction,
+                name=str(i)
+            ).add_to(m)
+
+        for i, row in df.iterrows():
+            shp = shapely.wkt.loads(row['Cloud WKT'])
+            geojson = shapely.geometry.mapping(shp)
+            folium.GeoJson(
+                geojson,
+                style_function=self._CloudStyleFunction,
+                name=str(i)
+            ).add_to(m)
 
     def _getUTMProj(self, aoi):
         """
