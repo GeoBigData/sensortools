@@ -500,7 +500,7 @@ class sensortools(object):
         """
         Map the footprints of the results in relation to the AOI
         """
-        
+
         shp = shapely.wkt.loads(aoi)
         geojson = shapely.geometry.mapping(shp)
         loc = self._convertAOItoLocation(aoi)
@@ -534,7 +534,7 @@ class sensortools(object):
         """
 
         shp = shapely.wkt.loads(aoi)
-        geojson = shapely.geometry,mapping(shp)
+        geojson = shapely.geometry.mapping(shp)
         loc = self._convertAOItoLocation(aoi)
         m = folium.Map(location=loc, zoom_start=8, tiles='Stamen Terrain')
         folium.GeoJson(
