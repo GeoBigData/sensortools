@@ -559,6 +559,8 @@ class sensortools(object):
                 style_function=self._CloudStyleFunction,
                 name=str(i)
             ).add_to(m)
+            
+        return m
 
     def _getUTMProj(self, aoi):
         """
