@@ -133,8 +133,7 @@ class sensortools(object):
             }
 
         return sensor_info
-
-
+        
     def gb_to_km2(self, gb, bit_depth=32):
         """
         Function to convert GB of data into sensor aerial coverage (km2)
@@ -568,52 +567,6 @@ class sensortools(object):
 
         return km2
 
-
-    sensor_colors = {
-        'GE01_Pan' : {
-            'plot_color' : '#fd8d3c'
-        },
-        'GE01_MS' : {
-            'plot_color' : '#fdbe85'
-        },
-        'GE01_Pansharpened' : {
-            'plot_color' : '#e6550d'
-        },
-        'WV01_Pan' : {
-            'plot_color' : '#969696'
-        },
-        'WV02_Pan' : {
-            'plot_color' : '#3182bd'
-        },
-        'WV02_MS' : {
-            'plot_color' : '#6baed6'
-        },
-        'WV02_Pansharpened' : {
-            'plot_color' : '#006d2c'
-        },
-        'WV03_Pan' : {
-            'plot_color' : '#31a354'
-        },
-        'WV03_MS' : {
-            'plot_color' : '#74c476'
-        },
-        'WV03_PanSharp' : {
-            'plot_color' : '#238b45'
-        },
-        'WV03_SWIR' : {
-            'plot_color' : '#bae4b3'
-        },
-        'WV04_Pan' : {
-            'plot_color' : '#756bb1'
-        },
-        'WV04_MS' : {
-            'plot_color' : '#9e9ac8'
-        },
-        'WV04_Pansharpened' : {
-            'plot_color' : '#54278f'
-        }}
-
-
     def mapGB(self, gb=None, aoi=[39.742043, -104.991531]):
         """
         Function to map GB to sensor areas given bands and resolution
@@ -639,7 +592,7 @@ class sensortools(object):
                 radius=np.sqrt(row['Area (km2)'] / np.pi) * 1000,
                 location=aoi,
                 tooltip=row['Sensor'],
-                color=self.sensor_colors[row['Sensor']]['plot_color'],
+                color=self._sensorInfo()[row['Sensor']]['plot_color'],
                 fill=False,
             ).add_to(m)
         return m
