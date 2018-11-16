@@ -24,6 +24,35 @@ class sensortools(object):
         # format the sensor infomation into pandas df
         self.sensors = self._formatSensorInfo()
 
+    def earthWatchLookup(self, df):
+        """
+        Given a dataframe with catalog_ids, do a search on WFS for
+        EarthWatch IDs
+        """
+
+        try:
+            with open('ew-connectid.txt', 'r') as a:
+                key = a.readlines()[0].rstrip()
+        except:
+            print('Could not find Connect ID in ./ew-connectid.txt')
+
+        url = """https://services.digitalglobe.com/catalogservice/wfsaccess?
+        connectid={key}&CQL_Filter=legacyid='{f}'
+        """
+
+        # add placeholder in dataframe
+        df['EarthWatchID'] = None
+
+        # iterate the dataframe rows, performing single lookups
+        for i, row in df.iterrows():
+            resp = requests.get(url.format(key=key, f=row['catalog_id'])).text
+
+            # TODO: parse the response for the EarthWatch ID
+
+            df.loc[df.catalog_id==row.catalog_id, 'EarthWatchID'] = resp
+
+        return df
+
     def _formatSensorInfo(self):
         """
         Formats sensor info into a pandas dataframe
@@ -118,7 +147,7 @@ class sensortools(object):
             },
             'WV03_PanSharp' : {
                 'resolution' : 0.31,
-                'band_count' : 3,
+                'band_count' : 8,
                 'plot_color' : '#bae4b3'
             },
             'WV04_Pan' : {
