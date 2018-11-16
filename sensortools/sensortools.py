@@ -190,6 +190,8 @@ class sensortools(object):
 
         df = pd.concat([self.sensors, km2.rename('Area (km2)').astype(np.int)], axis=1)
 
+        # Using a ratio of 16.017 km2/GB for WV3 Pansharp
+        df.loc[df.Sensor=='WV03_PanSharp', 'Area (km2)'] = gb * 16.017
 
         return df
 
