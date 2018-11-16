@@ -182,7 +182,7 @@ class sensortools(object):
             Returns input DataFrame with associated aerial coverage in km2 for each sensor
         """
 
-        file_bytes = gb * 1073741824
+        file_bytes = gb * 1e+9
         storage_bytes = bit_depth / 8.
 
         km2 = self.sensors.apply(lambda row: ((np.sqrt(file_bytes /
@@ -211,7 +211,7 @@ class sensortools(object):
         """
         side_length = np.sqrt(km2) * 1000
         pixel_count =  (side_length / self.sensors['Resolution (m)']) ** 2
-        sqkm = (pixel_count * self.sensors['Band Count'] * (bit_depth / 8.)) / 1073741824
+        sqkm = (pixel_count * self.sensors['Band Count'] * (bit_depth / 8.)) / 1e+9
 
         return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
