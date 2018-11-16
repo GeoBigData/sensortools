@@ -188,7 +188,10 @@ class sensortools(object):
         km2 = self.sensors.apply(lambda row: ((np.sqrt(file_bytes /
                              (row['Band Count'] * storage_bytes)) * row['Resolution (m)']) / 1000) ** 2, axis=1)
 
-        return pd.concat([self.sensors, km2.rename('Area (km2)').astype(np.int)], axis=1)
+        df = pd.concat([self.sensors, km2.rename('Area (km2)').astype(np.int)], axis=1)
+
+
+        return df
 
     def km2_to_gb(self, km2, bit_depth=32):
         """
@@ -213,7 +216,11 @@ class sensortools(object):
         pixel_count =  (side_length / self.sensors['Resolution (m)']) ** 2
         sqkm = (pixel_count * self.sensors['Band Count'] * (bit_depth / 8.)) / 1e+9
 
-        return pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
+        df = pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
+
+        df.loc[df.Sensor=='WV03_PanSharp', 'GB'] = df.loc[df.Sensor=='WV03_Pan'].GB.values + df.loc[df.Sensor=='WV03_MS'].GB.values
+
+        return df
 
     def _fpaoiinter(self, fp_wkt, aoi):
         """
