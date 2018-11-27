@@ -36,6 +36,11 @@ class sensortools(object):
         except:
             print('Could not find Connect ID in ./ew-connectid.txt')
 
+        url = """https://services.digitalglobe.com/catalogservice/wfsaccess?SERVICE=WFS&REQUEST=
+        GetFeature%20&typeName=DigitalGlobe:FinishedFeature&VERSION=1.1.0&
+        CONNECTID={key}&CQL_Filter=legacyid='{f}'
+        """
+
         url = """https://services.digitalglobe.com/catalogservice/wfsaccess?
         connectid={key}&CQL_Filter=legacyid='{f}'
         """
