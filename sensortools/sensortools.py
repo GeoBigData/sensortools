@@ -135,6 +135,11 @@ class sensortools(object):
                 'band_count' : 8,
                 'plot_color' : '#6baed6'
             },
+            'WV02_PanSharp': {
+                'resolution': 0.46,
+                'band_count': 8,
+                'plot_color': '#6baed6'
+            },
             'WV03_Pan' : {
                 'resolution' : 0.31,
                 'band_count' : 1,
@@ -226,6 +231,7 @@ class sensortools(object):
         df = pd.concat([self.sensors, sqkm.rename('GB')], axis=1)
 
         df.loc[df.Sensor=='WV03_PanSharp', 'GB'] = df.loc[df.Sensor=='WV03_Pan'].GB.values + df.loc[df.Sensor=='WV03_MS'].GB.values
+        df.loc[df.Sensor=='WV02_PanSharp', 'GB'] = df.loc[df.Sensor=='WV02_Pan'].GB.values + df.loc[df.Sensor=='WV02_MS'].GB.values
 
         return df
 
