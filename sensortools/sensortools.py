@@ -23,6 +23,178 @@ class sensortools(object):
         self._sensor_info = self._sensorInfo()
         # format the sensor infomation into pandas df
         self.sensors = self._formatSensorInfo()
+        # pricing table
+        self.gbdx_pricing_table = None
+        # IPP pricing table
+        self.ipp_pricing_table = None
+        # Compute costs
+        self.compute_fee=0.65
+        self.imagery_fee=4.5
+        self.compute_cost=0.4
+        self.imagery_cost=0.1
+
+    def _pricing_table(self, df):
+        self.gbdx_pricing_table = df
+
+    def setIPPPricingTable(self, df):
+        self.ipp_pricing_table = df
+
+    def addCustomTier(self, subscription, tier, cost, gb, compute, sales, mac, rev_share, claw_back):
+
+        self.gbdx_pricing_table = self.gbdx_pricing_table.append( \
+            pd.DataFrame({
+                    'Subscription': [subscription],
+                    'Tier': [tier],
+                    'Cost': [cost],
+                    'GB': [gb],
+                    'Compute': [compute],
+                    'Partner Sales': [sales],
+                    'MAC': [mac],
+                    'Revenue Share': [rev_share],
+                    'Claw Back': [claw_back]
+            })).reset_index().drop(columns=['index'])
+
+    def deleteTier(self, subscription, tier):
+        """
+        Remove pricing tier given both Subscription and Tier designation
+        """
+        g = self.gbdx_pricing_table
+        g = g.drop(index=g[(g['Subscription']==subscription) & (g['Tier']==tier)].index)
+        self.gbdx_pricing_table = g
+
+    def editGBDXTier(self, subscription, tier, variable, value):
+        """
+        Edit a GBDX Subcription Variable
+        """
+        g = self.gbdx_pricing_table
+        idx = g[(g['Subscription']==subscription) & (g['Tier']==tier)].index
+        g.loc[idx, variable] = value
+        self.gbdx_pricing_table = g
+
+    def editIPPTier(self, sensor, variable, value):
+        """
+        Edit a IPP Subcription Variable
+        """
+        g = self.ipp_pricing_table
+        idx = g[g.Sensor==sensor].index
+        g.loc[idx, variable] = value
+        self.ipp_pricing_table = g
+
+    def pricing(self, sensor=None, gb_tier=None):
+        """
+
+        """
+        dfs = []
+
+        if gb_tier:
+            g = self.gbdx_pricing_table[self.gbdx_pricing_table['GB']==gb_tier]
+        else:
+            g = self.gbdx_pricing_table
+
+        for i, row in g.iterrows():
+            df = self._gbdx_detailed_pricing(row['Subscription'], row['Tier'],
+                row['Cost'], row['GB'], row['Compute'], row['Partner Sales'],
+                row['MAC'], row['Revenue Share'], row['Claw Back'], sensor)
+            dfs.append(df)
+
+        gbdx_price = pd.concat(dfs, axis=0)
+
+        ipp = self._ipp_detailed_pricing(gbdx_price)
+
+        df = pd.concat([gbdx_price, ipp])
+
+        return df
+
+    def _ipp_detailed_pricing(self, df):
+        """
+        IPP Pricing is performed as a comparison to GBDX Pricing
+        """
+        df = pd.DataFrame(df.groupby(['Sensor', 'Resolution (m)', 'Band Count', 'Area (km2)', 'GB']).size()).reset_index()
+        df = df[df.columns[0:-1]]
+        df = df.merge(self.ipp_pricing_table, on='Sensor')
+
+        # if sales * rev share <= MAC
+        idx = df['Partner Sales'] * df['Revenue Share'] <= df['MAC']
+
+        df.loc[idx, 'Partner Payment $'] = df.loc[idx, 'Area (km2)'] * \
+            df.loc[idx, 'Cost $/km2'] * df.loc[idx, 'Discount Rate'] + df.loc[idx, 'MAC']
+
+        df.loc[~idx, 'Partner Payment $'] = df.loc[~idx, 'Area (km2)'] * \
+        df.loc[~idx, 'Cost $/km2'] * df.loc[~idx, 'Discount Rate'] + df['MAC'] + \
+        ((df.loc[~idx, 'Partner Sales'] * df.loc[~idx, 'Revenue Share']) - \
+        df.loc[~idx, 'MAC']) - (df.loc[~idx, 'Claw Back'] * (df.loc[~idx, 'Area (km2)'] * \
+        df.loc[~idx, 'Cost $/km2'] * df.loc[~idx, 'Discount Rate']))
+
+        # IPP Partner Retained Revenue
+        df['Partner Revenue $'] = df['Partner Sales'] - df['Partner Payment $']
+
+        # IPP DG Profit
+        df['Profit $'] = (df['Partner Payment $']).astype(np.int)
+
+        # IPP $/GB
+        df['Partner $/GB'] = (df['Partner Payment $'] / df['GB']).astype(np.int)
+
+        # IPP $/km2
+        df['Partner $/km2'] = (df['Partner Payment $'] / df['Area (km2)']).astype(np.int)
+
+        df['Subscription'] = 'IPP'
+        df['Tier'] = 'N/A'
+        df['Compute'] = 0
+        df['Internal Costs $'] = 0
+        df['Subscription Cost $'] = 0
+
+        df = df.drop(columns=['Cost $/km2', 'Discount Rate'])
+
+        return df
+
+    def _gbdx_detailed_pricing(self, subscription, tier, cost, gb, compute, sales,
+            mac, rev_share, claw_back, sensor):
+        """
+        Detailed Tier Pricing. Used primarily to determine $/km2 to be used in
+        self.pricing method.
+        """
+        if gb:
+            df = self.gb_to_km2(gb=gb)
+            df['GB'] = gb
+        elif km2:
+            df = self.km2_to_gb(km2=km2)
+            df['Area (km2)'] = km2
+        if sensor:
+            df = df[df.Sensor.isin(sensor)]
+
+        df['Subscription'] = subscription
+        df['Tier'] = tier
+        df['Compute'] = compute
+        df['Subscription Cost $'] = cost
+        df['Partner Sales'] = sales
+        df['Revenue Share'] = rev_share
+        df['MAC'] = mac
+        df['Claw Back'] = claw_back
+
+        # DG Costs (Year 1)
+        df['Internal Costs $'] = ((df['Compute'] * self.compute_cost) + (df['GB'] * self.imagery_cost)).astype(np.int)
+
+        # GBDX Partner Payment to DG
+        if sales * rev_share <= mac:
+            df['Partner Payment $'] = df['Subscription Cost $'] + mac
+        else:
+            df['Partner Payment $'] = df['Subscription Cost $'] + mac + \
+                ((sales * rev_share) - mac) - \
+                (claw_back * df['Subscription Cost $'])
+
+        # GBDX Partner Retained Revenue
+        df['Partner Revenue $'] = df['Partner Payment $'] - df['Partner Payment $']
+
+        # GBDX DG Profit
+        df['Profit $'] = (df['Partner Payment $'] - df['Internal Costs $']).astype(np.int)
+
+        # GBDX Partner $/GB
+        df['Partner $/GB'] = (df['Partner Payment $'] / df['GB']).astype(np.int)
+
+        # GBDX Partner $/km2
+        df['Partner $/km2'] = (df['Partner Payment $'] / df['Area (km2)']).astype(np.float)
+
+        return df
 
     def earthWatchLookup(self, df):
         """
@@ -36,13 +208,9 @@ class sensortools(object):
         except:
             print('Could not find Connect ID in ./ew-connectid.txt')
 
-        url = """https://services.digitalglobe.com/catalogservice/wfsaccess?SERVICE=WFS&REQUEST=
-        GetFeature%20&typeName=DigitalGlobe:FinishedFeature&VERSION=1.1.0&
-        CONNECTID={key}&CQL_Filter=legacyid='{f}'
-        """
-
-        url = """https://services.digitalglobe.com/catalogservice/wfsaccess?
-        connectid={key}&CQL_Filter=legacyid='{f}'
+        url = """https://securewatch.digitalglobe.com/catalogservice/wfsaccess?SERVICE=
+        WFS&VERSION=1.1.0&REQUEST=GetFeature&CONNECTID={key}&TYPENAME=
+        DigitalGlobe:FinishedFeature&CQL_FILTER=legacyId=%27{f}%27&propertyName=featureId
         """
 
         # add placeholder in dataframe
