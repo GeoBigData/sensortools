@@ -33,7 +33,7 @@ class sensortools(object):
         self.compute_cost=0.4
         self.imagery_cost=0.1
 
-    def _pricing_table(self, df):
+    def setGBDXPricingTable(self, df):
         self.gbdx_pricing_table = df
 
     def setIPPPricingTable(self, df):
