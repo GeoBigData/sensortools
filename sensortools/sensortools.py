@@ -220,9 +220,10 @@ class sensortools(object):
         for i, row in df.iterrows():
             resp = requests.get(url.format(key=key, f=row['catalog_id'])).text
 
-            # TODO: parse the response for the EarthWatch ID
+            # featureID
+            fid = response.text.split('DigitalGlobe:featureId')[1][1:][:-2]
 
-            df.loc[df.catalog_id==row.catalog_id, 'EarthWatchID'] = resp
+            df.loc[df.catalog_id==row.catalog_id, 'EarthWatchID'] = fid
 
         return df
 
@@ -621,7 +622,7 @@ class sensortools(object):
         f, ax = plt.subplots(figsize=(12,6))
         sns.despine(bottom=True, left=True)
 
-        sns.stripplot(x="Date", y="Sensor", hue="Sensor",
+        sns.stripplot(x="Date", y="Sensor",
                       data=df, dodge=True, jitter=True,
                       alpha=.25, zorder=1, size=10)
 
