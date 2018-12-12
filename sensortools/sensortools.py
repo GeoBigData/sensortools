@@ -554,7 +554,7 @@ class sensortools(object):
         Format the results into a pandas df. To be used in plotting functions
         but also useful outside of them.
         """
-        cat, s, t, c, n, e, f, i = [], [], [], [], [], [], [], []
+        cat, s, t, c, n, e, f, i, k = [], [], [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
             cat.append(re['identifier'])
             s.append(re['properties']['sensorPlatformName'])
@@ -564,6 +564,7 @@ class sensortools(object):
             e.append(re['properties']['sunElevation'])
             f.append(re['properties']['footprintWkt'])
             i.append(self._fpaoiinter(re['properties']['footprintWkt'], aoi))
+            k.append(self.aoiArea(re['properties']['footprintWkt']))
 
         df = pd.DataFrame({
             'catalog_id': cat,
@@ -573,6 +574,7 @@ class sensortools(object):
             'Off Nadir Angle': n,
             'Sun Elevation': e,
             'Footprint WKT': f,
+            'Footprint Area (km2)': k,
             'Footprint AOI Inter Percent': i},
             index=pd.to_datetime(t))
         df.sort_values(['Date'], inplace=True)
