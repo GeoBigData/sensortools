@@ -560,11 +560,15 @@ class sensortools(object):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
             c.append(re['properties']['cloudCover'])
+            # Catches for Landsat images missing these properties
             try:
                 n.append(re['properties']['offNadirAngle'])
             except:
                 n.append(0)
-            e.append(re['properties']['sunElevation'])
+            try:
+                e.append(re['properties']['sunElevation'])
+            except:
+                e.append(0)
             f.append(re['properties']['footprintWkt'])
             i.append(self._fpaoiinter(re['properties']['footprintWkt'], aoi))
             k.append(self.aoiArea(re['properties']['footprintWkt']))
