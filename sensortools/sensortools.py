@@ -592,6 +592,16 @@ class sensortools(object):
 
         return df
 
+    def searchDistPlot(self, df, var, sensor=None):
+        """
+        Create a Distribution plot of one variable. Optionally, subset by sensor
+        """
+        if sensor:
+            df = df.loc[df.Sensor==sensor]
+        sns.distplot(df[var])
+
+        return None
+
     def searchVarPlot(self, df, var1=None, var2=None, sensor=None):
         """
         Create a Jointplot of two variables. Optionally, subset by sensor
