@@ -560,7 +560,10 @@ class sensortools(object):
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
             c.append(re['properties']['cloudCover'])
-            n.append(re['properties']['offNadirAngle'])
+            try:
+                n.append(re['properties']['offNadirAngle'])
+            except:
+                n.append(0)
             e.append(re['properties']['sunElevation'])
             f.append(re['properties']['footprintWkt'])
             i.append(self._fpaoiinter(re['properties']['footprintWkt'], aoi))
