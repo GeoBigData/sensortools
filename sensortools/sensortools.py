@@ -559,8 +559,11 @@ class sensortools(object):
             cat.append(re['identifier'])
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
-            c.append(re['properties']['cloudCover'])
-            # Catches for Landsat images missing these properties
+            # Catches for Landsat and RadarSat images missing these properties
+            try:
+                c.append(re['properties']['cloudCover'])
+            except:
+                c.append(0)
             try:
                 n.append(re['properties']['offNadirAngle'])
             except:
