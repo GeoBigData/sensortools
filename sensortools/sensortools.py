@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import folium
+import fiona
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
@@ -268,6 +269,19 @@ class sensortools(object):
         Create a simplified WKT AOI from a GeoJSON File
         """
         pass
+
+    def readSHP(self, shapefile):
+        """
+        Read Shapefile and Store in Dataframe with each polygon stored as
+        WKT. MUST BE ESPG 4326!
+        """
+        gid, wkt = [], []
+        shape = fiona.open(shapefile)
+        for feature in shape:
+            gid.append(feature['id'])
+            wkt.append(shapely.geometry.shape(feature['geometry']).wkt)
+
+        return pd.DataFrame({'gid': gid, 'WKT': wkt})
 
     def setSensorResolution(self, sensor, resolution):
         """
@@ -696,7 +710,7 @@ class sensortools(object):
         m = folium.Map(location=aoi, zoom_start=8, tiles='Stamen Terrain')
         folium.GeoJson(
             geojson,
-            name='geojson'
+            name='geojson
         ).add_to(m)
 
         return m
@@ -706,7 +720,7 @@ class sensortools(object):
         Style Function for Footprints
         """
         return {
-            'fillOpacity': 0.0,
+            fillOpacity': 0.0,
             'weight': 1,
             'fillColor': 'red',
             'color': 'red',
