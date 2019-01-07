@@ -710,7 +710,7 @@ class sensortools(object):
         m = folium.Map(location=aoi, zoom_start=8, tiles='Stamen Terrain')
         folium.GeoJson(
             geojson,
-            name='geojson
+            name='geojson'
         ).add_to(m)
 
         return m
