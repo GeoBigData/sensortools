@@ -34,7 +34,15 @@ setup(
     ],
 
     packages=find_packages(exclude=['tests', 'docs', 'examples']),
-
-    install_requires=requirements
+    install_requires=requirements,
+    package_data={
+        'data': [
+            'japan_urban.dbf',
+            'japan_urban.prj',
+            'japan_urban.qpj',
+            'japan_urban.shp',
+            'japan_urban.shx'
+        ]
+    }
 
 )
