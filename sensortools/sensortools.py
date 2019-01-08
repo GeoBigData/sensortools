@@ -549,6 +549,7 @@ class sensortools(object):
                 inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
 
             inter_km2 = inter_shp_prj.area / 1000000.
+            print(inter_km2, aoi_fp_inter_km2)
             pct = inter_km2 / aoi_fp_inter_km2 * 100.
 
             # update the dataframe
