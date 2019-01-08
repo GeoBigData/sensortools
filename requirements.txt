@@ -8,3 +8,4 @@ pandas
 seaborn
 utm
 requests
+fiona
