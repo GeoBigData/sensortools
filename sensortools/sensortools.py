@@ -550,7 +550,7 @@ class sensortools(object):
 
             inter_km2 = inter_shp_prj.area / 1000000.
             print(inter_km2, aoi_fp_inter_km2)
-            pct = 0#inter_km2 / aoi_fp_inter_km2 * 100.
+            pct = inter_km2 / aoi_fp_inter_km2 * 100.
 
             # update the dataframe
             df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
@@ -603,6 +603,10 @@ class sensortools(object):
             'Footprint AOI Inter Percent': i},
             index=pd.to_datetime(t))
         df.sort_values(['Date'], inplace=True)
+        # for some reason, search results spit back geoms that do not intersect
+        # the aoi... so must remove 0's
+        df = df[df['Footprint AOI Inter Percent']!=0]
+        
         df['x'] = range(len(df))
 
         return df
