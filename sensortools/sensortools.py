@@ -549,7 +549,7 @@ class sensortools(object):
                 inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
 
             inter_km2 = inter_shp_prj.area / 1000000.
-            print(inter_km2, aoi_fp_inter_km2)
+            
             pct = inter_km2 / aoi_fp_inter_km2 * 100.
 
             # update the dataframe
@@ -606,7 +606,7 @@ class sensortools(object):
         # for some reason, search results spit back geoms that do not intersect
         # the aoi... so must remove 0's
         df = df[df['Footprint AOI Inter Percent']!=0]
-        
+
         df['x'] = range(len(df))
 
         return df
