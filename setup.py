@@ -36,12 +36,12 @@ setup(
     packages=find_packages(exclude=['tests', 'docs', 'examples']),
     install_requires=requirements,
     package_data={
-        'data': [
-            'japan_urban.dbf',
-            'japan_urban.prj',
-            'japan_urban.qpj',
-            'japan_urban.shp',
-            'japan_urban.shx'
+        'sensortools': [
+            'data/japan_urban.dbf',
+            'data/japan_urban.prj',
+            'data/japan_urban.qpj',
+            'data/japan_urban.shp',
+            'data/japan_urban.shx'
         ]
     }
 
