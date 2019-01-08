@@ -550,7 +550,7 @@ class sensortools(object):
 
             inter_km2 = inter_shp_prj.area / 1000000.
             print(inter_km2, aoi_fp_inter_km2)
-            pct = inter_km2 / aoi_fp_inter_km2 * 100.
+            pct = 0#inter_km2 / aoi_fp_inter_km2 * 100.
 
             # update the dataframe
             df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
