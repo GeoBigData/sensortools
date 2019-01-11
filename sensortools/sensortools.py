@@ -526,7 +526,7 @@ class sensortools(object):
         # add column to search df
         df['AOI Cloud Cover'] = 0
         df['Cloud WKT'] = ''
-
+        print(clouds)
         if len(clouds) > 0:
             # iterate over the clouds and perform cloud cover percent
             for feature in clouds['features']:
