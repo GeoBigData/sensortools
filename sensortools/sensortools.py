@@ -276,10 +276,15 @@ class sensortools(object):
         WKT. MUST BE ESPG 4326!
         """
         gid, wkt = [], []
-        shape = fiona.open(shapefile)
         for feature in shape:
-            gid.append(feature['id'])
-            wkt.append(shapely.geometry.shape(feature['geometry']).wkt)
+            # try to explode multipart polygons
+            try:
+                for poly in shapely.geometry.shape(feature['geometry']):
+                    gid.append(feature['id'])
+                    wkt.append(poly.wkt)
+            except:
+                gid.append(feature['id'])
+                wkt.append(shapely.geometry.shape(feature['geometry']).wkt)
 
         return pd.DataFrame({'gid': gid, 'WKT': wkt})
 
@@ -522,39 +527,43 @@ class sensortools(object):
         df['AOI Cloud Cover'] = 0
         df['Cloud WKT'] = ''
 
-        # iterate over the clouds and perform cloud cover percent
-        for feature in clouds['features']:
-            # get catalog id
-            c = feature['properties']['image_identifier']
+        if len(clouds['features']) > 0:
+            # iterate over the clouds and perform cloud cover percent
+            for feature in clouds['features']:
+                # get catalog id
+                c = feature['properties']['image_identifier']
 
-            # get the footprint shape
-            fp = shapely.wkt.loads(df.loc[df['catalog_id']==c,
-                    'Footprint WKT'].values[0])
-            fp_prj = transform(project, fp)
+                # get the footprint shape
+                fp = shapely.wkt.loads(df.loc[df['catalog_id']==c,
+                        'Footprint WKT'].values[0])
+                fp_prj = transform(project, fp)
 
-            # intersect the AOI with the footprint
-            # using this as intersection with clouds
-            aoi_fp_inter = aoi_shp_prj.intersection(fp_prj)
-            aoi_fp_inter_km2 = aoi_fp_inter.area / 1000000.
+                # intersect the AOI with the footprint
+                # using this as intersection with clouds
+                aoi_fp_inter = aoi_shp_prj.intersection(fp_prj)
+                aoi_fp_inter_km2 = aoi_fp_inter.area / 1000000.
 
-            # extract the clouds and conver to shape
-            cloud = shapely.geometry.shape(feature['geometry'])
-            cloud_prj = transform(project, cloud)
+                # extract the clouds and conver to shape
+                cloud = shapely.geometry.shape(feature['geometry'])
+                cloud_prj = transform(project, cloud)
 
-            # perform intersection and calculate area
-            try:
-                inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
-            except:
-                cloud_prj = cloud_prj.buffer(0.0)
-                inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
+                # perform intersection and calculate area
+                try:
+                    inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
+                except:
+                    cloud_prj = cloud_prj.buffer(0.0)
+                    inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
 
-            inter_km2 = inter_shp_prj.area / 1000000.
-            
-            pct = inter_km2 / aoi_fp_inter_km2 * 100.
+                inter_km2 = inter_shp_prj.area / 1000000.
 
-            # update the dataframe
-            df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
-            df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
+                pct = inter_km2 / aoi_fp_inter_km2 * 100.
+
+                # update the dataframe
+                df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
+                df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
+        else:
+            # no clouds, move on... 
+            pass
 
         return df
 
