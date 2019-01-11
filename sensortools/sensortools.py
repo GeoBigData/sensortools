@@ -527,7 +527,7 @@ class sensortools(object):
         df['AOI Cloud Cover'] = 0
         df['Cloud WKT'] = ''
 
-        if len(clouds['features']) > 0:
+        if len(clouds) > 0:
             # iterate over the clouds and perform cloud cover percent
             for feature in clouds['features']:
                 # get catalog id
@@ -562,7 +562,7 @@ class sensortools(object):
                 df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
                 df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
         else:
-            # no clouds, move on... 
+            # no clouds, move on...
             pass
 
         return df
