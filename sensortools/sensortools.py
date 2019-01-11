@@ -563,7 +563,7 @@ class sensortools(object):
                 df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
         except:
             # no clouds, move on...
-            pass
+            print('Warning, Either there no clouds or there was an internal server error')
 
         return df
 
