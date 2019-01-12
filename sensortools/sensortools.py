@@ -495,23 +495,7 @@ class sensortools(object):
                 api_key = a.readlines()[0].rstrip()
         except:
             print('Could not find DUC API key in ./duc-api.txt')
-        # search the results, do not submit catids with 0 cloud cover
-        catids = df[df['Cloud Cover'] > 0].catalog_id.values
-
-        # send request to DUC database
-        url = "https://api.discover.digitalglobe.com/v1/services/cloud_cover/MapServer/0/query"
-        headers = {
-            'x-api-key': "{api_key}".format(api_key=api_key),
-            'content-type': "application/x-www-form-urlencoded"
-        }
-        data = {
-            'outFields': '*',
-            'where':"image_identifier IN ({cat})".format(cat="'" + "','".join(catids) + "'"),
-            'outSR':'4326',
-            'f':'geojson'
-        }
-        response = requests.request("POST", url, headers=headers, data=data)
-        clouds = json.loads(response.text)
+            return None
 
         # projection info
         to_p = self._getUTMProj(aoi)
@@ -527,43 +511,66 @@ class sensortools(object):
         df['AOI Cloud Cover'] = 0
         df['Cloud WKT'] = ''
 
-        try:
-            # iterate over the clouds and perform cloud cover percent
-            for feature in clouds['features']:
-                # get catalog id
-                c = feature['properties']['image_identifier']
+        # search the results, do not submit catids with 0 cloud cover
+        catids = df[df['Cloud Cover'] > 0].catalog_id.values
 
-                # get the footprint shape
-                fp = shapely.wkt.loads(df.loc[df['catalog_id']==c,
-                        'Footprint WKT'].values[0])
-                fp_prj = transform(project, fp)
+        # split catids into groups of 50 so API doesn't choke
+        cat_arr = np.array_split(catids, np.round(len(catids) / 50))
 
-                # intersect the AOI with the footprint
-                # using this as intersection with clouds
-                aoi_fp_inter = aoi_shp_prj.intersection(fp_prj)
-                aoi_fp_inter_km2 = aoi_fp_inter.area / 1000000.
+        # iterate over groups of 50
+        for cats in car_arr:
+            # send request to DUC database
+            url = "https://api.discover.digitalglobe.com/v1/services/cloud_cover/MapServer/0/query"
+            headers = {
+                'x-api-key': "{api_key}".format(api_key=api_key),
+                'content-type': "application/x-www-form-urlencoded"
+            }
+            data = {
+                'outFields': '*',
+                'where':"image_identifier IN ({cat})".format(cat="'" + "','".join(cats) + "'"),
+                'outSR':'4326',
+                'f':'geojson'
+            }
+            response = requests.request("POST", url, headers=headers, data=data)
+            clouds = json.loads(response.text)
 
-                # extract the clouds and conver to shape
-                cloud = shapely.geometry.shape(feature['geometry'])
-                cloud_prj = transform(project, cloud)
+            try:
+                # iterate over the clouds and perform cloud cover percent
+                for feature in clouds['features']:
+                    # get catalog id
+                    c = feature['properties']['image_identifier']
 
-                # perform intersection and calculate area
-                try:
-                    inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
-                except:
-                    cloud_prj = cloud_prj.buffer(0.0)
-                    inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
+                    # get the footprint shape
+                    fp = shapely.wkt.loads(df.loc[df['catalog_id']==c,
+                            'Footprint WKT'].values[0])
+                    fp_prj = transform(project, fp)
 
-                inter_km2 = inter_shp_prj.area / 1000000.
+                    # intersect the AOI with the footprint
+                    # using this as intersection with clouds
+                    aoi_fp_inter = aoi_shp_prj.intersection(fp_prj)
+                    aoi_fp_inter_km2 = aoi_fp_inter.area / 1000000.
 
-                pct = inter_km2 / aoi_fp_inter_km2 * 100.
+                    # extract the clouds and conver to shape
+                    cloud = shapely.geometry.shape(feature['geometry'])
+                    cloud_prj = transform(project, cloud)
 
-                # update the dataframe
-                df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
-                df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
-        except:
-            # no clouds, move on...
-            print('Warning, Either there no clouds or there was an internal server error')
+                    # perform intersection and calculate area
+                    try:
+                        inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
+                    except:
+                        cloud_prj = cloud_prj.buffer(0.0)
+                        inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
+
+                    inter_km2 = inter_shp_prj.area / 1000000.
+
+                    pct = inter_km2 / aoi_fp_inter_km2 * 100.
+
+                    # update the dataframe
+                    df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
+                    df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
+            except:
+                # no clouds, move on...
+                print('Warning, No Clouds Found...')
 
         return df
 
