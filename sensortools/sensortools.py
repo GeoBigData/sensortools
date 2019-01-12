@@ -518,7 +518,7 @@ class sensortools(object):
         cat_arr = np.array_split(catids, np.round(len(catids) / 50))
 
         # iterate over groups of 50
-        for cats in car_arr:
+        for cats in cat_arr:
             # send request to DUC database
             url = "https://api.discover.digitalglobe.com/v1/services/cloud_cover/MapServer/0/query"
             headers = {
