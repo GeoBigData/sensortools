@@ -515,7 +515,7 @@ class sensortools(object):
         catids = df[df['Cloud Cover'] > 0].catalog_id.values
 
         # split catids into groups of 50 so API doesn't choke
-        cat_arr = np.array_split(catids, np.round(len(catids) / 50))
+        cat_arr = np.array_split(catids, np.ceil(len(catids) / 50.))
 
         # iterate over groups of 50
         for cats in cat_arr:
