@@ -13,6 +13,7 @@ from functools import partial
 from shapely.ops import transform
 import requests
 import warnings
+from exceptions import *
 warnings.filterwarnings("ignore")
 
 class sensortools(object):
@@ -493,9 +494,10 @@ class sensortools(object):
         try:
             with open('duc-api.txt', 'r') as a:
                 api_key = a.readlines()[0].rstrip()
-        except:
-            print('Could not find DUC API key in ./duc-api.txt')
-            return None
+        except IOError:
+            raise MissingDUCAPIkeyError('Could not find DUC API key in ./duc-api.txt')
+        except IndexError:
+            raise DUCAPIkeyFormattingError('Could not find text in ./duc-api.txt')
 
         # projection info
         to_p = self._getUTMProj(aoi)
