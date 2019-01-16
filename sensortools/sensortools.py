@@ -587,9 +587,10 @@ class sensortools(object):
         Format the results into a pandas df. To be used in plotting functions
         but also useful outside of them.
         """
-        cat, s, t, c, n, e, f, i, k = [], [], [], [], [], [], [], [], []
+        ids, cat, s, t, c, n, e, f, i, k = [], [], [], [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
-            cat.append(re['identifier'])
+            ids.append(re['identifier'])
+            cat.append(re['properties'].get('catalogID'))
             s.append(re['properties']['sensorPlatformName'])
             t.append(re['properties']['timestamp'])
             # Catches for Landsat and RadarSat images missing these properties
@@ -610,6 +611,7 @@ class sensortools(object):
             k.append(self.aoiArea(re['properties']['footprintWkt']))
 
         df = pd.DataFrame({
+            'image_identifier': ids,
             'catalog_id': cat,
             'Sensor': s,
             'Date': pd.to_datetime(t),
