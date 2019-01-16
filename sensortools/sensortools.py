@@ -277,15 +277,16 @@ class sensortools(object):
         WKT. MUST BE ESPG 4326!
         """
         gid, wkt = [], []
-        for feature in shape:
-            # try to explode multipart polygons
-            try:
-                for poly in shapely.geometry.shape(feature['geometry']):
+        with fiona.open(shapefile) as shape:
+            for feature in shape:
+                # try to explode multipart polygons
+                try:
+                    for poly in shapely.geometry.shape(feature['geometry']):
+                        gid.append(feature['id'])
+                        wkt.append(poly.wkt)
+                except:
                     gid.append(feature['id'])
-                    wkt.append(poly.wkt)
-            except:
-                gid.append(feature['id'])
-                wkt.append(shapely.geometry.shape(feature['geometry']).wkt)
+                    wkt.append(shapely.geometry.shape(feature['geometry']).wkt)
 
         return pd.DataFrame({'gid': gid, 'WKT': wkt})
 
