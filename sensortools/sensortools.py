@@ -13,7 +13,7 @@ from functools import partial
 from shapely.ops import transform
 import requests
 import warnings
-from exceptions import *
+from .exceptions import *
 warnings.filterwarnings("ignore")
 
 class sensortools(object):
