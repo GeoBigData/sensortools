@@ -588,11 +588,13 @@ class sensortools(object):
         Format the results into a pandas df. To be used in plotting functions
         but also useful outside of them.
         """
-        ids, cat, s, t, c, n, e, f, i, k = [], [], [], [], [], [], [], [], [], []
+        ids, cat, s, pr, mr, t, c, n, e, f, i, k = [], [], [], [], [], [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
             ids.append(re['identifier'])
             cat.append(re['properties'].get('catalogID'))
             s.append(re['properties']['sensorPlatformName'])
+            pr.append(re['properties']['panResolution'])
+            mr.append(re['properties']['multiResolution'])
             t.append(re['properties']['timestamp'])
             # Catches for Landsat and RadarSat images missing these properties
             try:
@@ -615,6 +617,8 @@ class sensortools(object):
             'image_identifier': ids,
             'catalog_id': cat,
             'Sensor': s,
+            'Pan Resolution': pr,
+            'MS Resolution': mr,
             'Date': pd.to_datetime(t),
             'Cloud Cover': c,
             'Off Nadir Angle': n,
