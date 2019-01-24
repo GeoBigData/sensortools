@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import folium
-import fiona
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
@@ -11,6 +10,7 @@ import utm
 import pyproj
 from functools import partial
 from shapely.ops import transform
+import fiona
 import requests
 import warnings
 from .exceptions import *
