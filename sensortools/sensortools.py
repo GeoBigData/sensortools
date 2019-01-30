@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import folium
-import fiona
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
@@ -11,6 +10,7 @@ import utm
 import pyproj
 from functools import partial
 from shapely.ops import transform
+import fiona
 import requests
 import warnings
 from .exceptions import *
@@ -588,11 +588,14 @@ class sensortools(object):
         Format the results into a pandas df. To be used in plotting functions
         but also useful outside of them.
         """
-        ids, cat, s, t, c, n, e, f, i, k = [], [], [], [], [], [], [], [], [], []
+        ids, cat, s, pr, mr, t, c, n, e, f, i, k, ta = [], [], [], [], [], [], [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
             ids.append(re['identifier'])
             cat.append(re['properties'].get('catalogID'))
             s.append(re['properties']['sensorPlatformName'])
+            pr.append(re['properties'].get('panResolution'))
+            mr.append(re['properties'].get('multiResolution'))
+            ta.append(re['properties'].get('targetAzimuth'))
             t.append(re['properties']['timestamp'])
             # Catches for Landsat and RadarSat images missing these properties
             try:
@@ -615,10 +618,13 @@ class sensortools(object):
             'image_identifier': ids,
             'catalog_id': cat,
             'Sensor': s,
+            'Pan Resolution': pr,
+            'MS Resolution': mr,
             'Date': pd.to_datetime(t),
             'Cloud Cover': c,
             'Off Nadir Angle': n,
             'Sun Elevation': e,
+            'Target Azimuth': ta,
             'Footprint WKT': f,
             'Footprint Area (km2)': k,
             'Footprint AOI Inter Percent': i},
