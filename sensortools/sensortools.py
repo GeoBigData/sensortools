@@ -309,7 +309,7 @@ class sensortools(object):
                 'resolution' : 1.64,
                 'band_count' : 4,
                 'plot_color' : '#fdbe85'
-            },#TODO
+            },
             'GE01_PanSharp' : {
                 'resolution' : 0.41,
                 'band_count' : 4,
@@ -363,8 +363,8 @@ class sensortools(object):
             'WV04_MS' : {
                 'resolution' : 1.24,
                 'band_count' : 4,
-                'plot_color' : '#9e9ac8'}
-            }, #TODO
+                'plot_color' : '#9e9ac8'
+            },
             'WV04_PanSharp' : {
                 'resolution' : 0.31,
                 'band_count' : 4,
