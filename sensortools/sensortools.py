@@ -309,6 +309,11 @@ class sensortools(object):
                 'resolution' : 1.64,
                 'band_count' : 4,
                 'plot_color' : '#fdbe85'
+            },#TODO
+            'GE01_PanSharp' : {
+                'resolution' : 0.41,
+                'band_count' : 4,
+                'plot_color' : '#fdbe85'
             },
             'WV01_Pan' : {
                 'resolution' : 0.5,
@@ -357,6 +362,11 @@ class sensortools(object):
             },
             'WV04_MS' : {
                 'resolution' : 1.24,
+                'band_count' : 4,
+                'plot_color' : '#9e9ac8'}
+            } #TODO
+            'WV04_PanSharp' : {
+                'resolution' : 0.31,
                 'band_count' : 4,
                 'plot_color' : '#9e9ac8'}
             }
@@ -423,6 +433,8 @@ class sensortools(object):
 
         df.loc[df.Sensor=='WV03_PanSharp', 'GB'] = df.loc[df.Sensor=='WV03_Pan'].GB.values + df.loc[df.Sensor=='WV03_MS'].GB.values
         df.loc[df.Sensor=='WV02_PanSharp', 'GB'] = df.loc[df.Sensor=='WV02_Pan'].GB.values + df.loc[df.Sensor=='WV02_MS'].GB.values
+        df.loc[df.Sensor=='GE01_PanSharp', 'GB'] = df.loc[df.Sensor=='GE01_Pan'].GB.values + df.loc[df.Sensor=='GE01_MS'].GB.values
+        df.loc[df.Sensor=='WV04_PanSharp', 'GB'] = df.loc[df.Sensor=='WV04_Pan'].GB.values + df.loc[df.Sensor=='WV04_MS'].GB.values
 
         return df
 
