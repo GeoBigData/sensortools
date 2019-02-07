@@ -403,6 +403,8 @@ class sensortools(object):
         # Using a ratio of km2/GB for WV2/WV3 Pansharp
         df.loc[df.Sensor=='WV03_PanSharp', 'Area (km2)'] = gb * 16.017
         df.loc[df.Sensor=='WV02_PanSharp', 'Area (km2)'] = gb * 35.394
+        df.loc[df.Sensor=='WV04_PanSharp', 'Area (km2)'] = gb * 19.22
+        df.loc[df.Sensor=='GE01_PanSharp', 'Area (km2)'] = gb * 33.62
 
         return df
 
