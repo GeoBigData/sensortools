@@ -364,7 +364,7 @@ class sensortools(object):
                 'resolution' : 1.24,
                 'band_count' : 4,
                 'plot_color' : '#9e9ac8'}
-            } #TODO
+            }, #TODO
             'WV04_PanSharp' : {
                 'resolution' : 0.31,
                 'band_count' : 4,
