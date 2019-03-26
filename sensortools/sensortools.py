@@ -1,4 +1,4 @@
-import tools.spatial
+import sensortools.tools.spatial as spatial_tools
 import pandas as pd
 import numpy as np
 import folium
@@ -251,7 +251,7 @@ class sensortools(object):
         pt = shapely.geometry.Point(longitude, latitude)
 
         # create the UTM projection
-        to_p = tools.spatial.getLLUTMProj(latitude, longitude)
+        to_p = spatial_tools.getLLUTMProj(latitude, longitude)
         from_p = pyproj.Proj(init='epsg:4326')
         project = partial(pyproj.transform, from_p, to_p)
         project_reverse = partial(pyproj.transform, to_p, from_p)
@@ -450,7 +450,7 @@ class sensortools(object):
         Calculate the individual footprint coverage of the AOI
         """
         # get the projection for area calculations
-        to_p = tools.spatial.getUTMProj(aoi)
+        to_p = spatial_tools.getUTMProj(aoi)
         from_p = pyproj.Proj(init='epsg:4326')
         project = partial(pyproj.transform, from_p, to_p)
 
@@ -476,7 +476,7 @@ class sensortools(object):
         covered by all footprints
         """
         # projection info
-        to_p = tools.spatial.getUTMProj(aoi)
+        to_p = spatial_tools.getUTMProj(aoi)
         from_p = pyproj.Proj(init='epsg:4326')
         project = partial(pyproj.transform, from_p, to_p)
 
@@ -520,7 +520,7 @@ class sensortools(object):
             raise DUCAPIkeyFormattingError('Could not find text in ./duc-api.txt')
 
         # projection info
-        to_p = tools.spatial.getUTMProj(aoi)
+        to_p = spatial_tools.getUTMProj(aoi)
         from_p = pyproj.Proj(init='epsg:4326')
         project = partial(pyproj.transform, from_p, to_p)
 
@@ -745,7 +745,7 @@ class sensortools(object):
         shp = shapely.wkt.loads(aoi)
         geojson = shapely.geometry.mapping(shp)
         # calculate centroid of AOI as starting location
-        aoi = tools.spatial.convertAOItoLocation(aoi)
+        aoi = spatial_tools.convertAOItoLocation(aoi)
         # create simple map
         m = folium.Map(location=aoi, zoom_start=8, tiles='Stamen Terrain')
         folium.GeoJson(
@@ -798,7 +798,7 @@ class sensortools(object):
 
         shp = shapely.wkt.loads(aoi)
         geojson = shapely.geometry.mapping(shp)
-        loc = tools.spatial.convertAOItoLocation(aoi)
+        loc = spatial_tools.convertAOItoLocation(aoi)
         m = folium.Map(location=loc, zoom_start=8, tiles='Stamen Terrain')
         folium.GeoJson(
             geojson,
@@ -830,7 +830,7 @@ class sensortools(object):
 
         shp = shapely.wkt.loads(aoi)
         geojson = shapely.geometry.mapping(shp)
-        loc = tools.spatial.convertAOItoLocation(aoi)
+        loc = spatial_tools.convertAOItoLocation(aoi)
         m = folium.Map(location=loc, zoom_start=8, tiles='Stamen Terrain')
         folium.GeoJson(
             geojson,
@@ -862,7 +862,7 @@ class sensortools(object):
         Get the UTM projection string for an AOI centroid
         """
         shp = shapely.wkt.loads(aoi)
-        to_p = tools.spatial.getUTMProj(aoi)
+        to_p = spatial_tools.getUTMProj(aoi)
         from_p = pyproj.Proj(init='epsg:4326')
 
         project = partial(pyproj.transform, from_p, to_p)
@@ -885,7 +885,7 @@ class sensortools(object):
 
         # if user passes in Polygon AOI, convert to Folium location
         if isinstance(aoi, str):
-            aoi = tools.spatial.convertAOItoLocation(aoi)
+            aoi = spatial_tools.convertAOItoLocation(aoi)
 
         # TODO: add legend
         # TODO: could add some logic to control zoom level
