@@ -9,12 +9,14 @@ import shapely
 import json
 import pyproj
 from functools import partial
+from shapely.geos import TopologicalError
 from shapely.ops import transform
 import fiona
 import requests
 import warnings
 from .exceptions import *
 warnings.filterwarnings("ignore")
+
 
 class sensortools(object):
     '''
@@ -207,8 +209,10 @@ class sensortools(object):
         try:
             with open('ew-connectid.txt', 'r') as a:
                 key = a.readlines()[0].rstrip()
-        except:
-            print('Could not find Connect ID in ./ew-connectid.txt')
+        except IOError:
+            raise IOError('Could not find Connect ID in ./ew-connectid.txt')
+        except IndexError:
+            raise IOError('Could not find text in ./ew-connectid.txt')
 
         url = """https://securewatch.digitalglobe.com/catalogservice/wfsaccess?SERVICE=
         WFS&VERSION=1.1.0&REQUEST=GetFeature&CONNECTID={key}&TYPENAME=
@@ -279,14 +283,15 @@ class sensortools(object):
         gid, wkt = [], []
         with fiona.open(shapefile) as shape:
             for feature in shape:
+                geometry = shapely.geometry.shape(feature['geometry'])
                 # try to explode multipart polygons
                 try:
-                    for poly in shapely.geometry.shape(feature['geometry']):
+                    for poly in geometry:
                         gid.append(feature['id'])
                         wkt.append(poly.wkt)
-                except:
+                except TypeError:
                     gid.append(feature['id'])
-                    wkt.append(shapely.geometry.shape(feature['geometry']).wkt)
+                    wkt.append(geometry.wkt)
 
         return pd.DataFrame({'gid': gid, 'WKT': wkt})
 
@@ -544,9 +549,9 @@ class sensortools(object):
             }
             data = {
                 'outFields': '*',
-                'where':"image_identifier IN ({cat})".format(cat="'" + "','".join(cats) + "'"),
-                'outSR':'4326',
-                'f':'geojson'
+                'where': "image_identifier IN ({cat})".format(cat="'" + "','".join(cats) + "'"),
+                'outSR': '4326',
+                'f': 'geojson'
             }
             response = requests.request("POST", url, headers=headers, data=data)
             clouds = json.loads(response.text)
@@ -558,8 +563,7 @@ class sensortools(object):
                     c = feature['properties']['image_identifier']
 
                     # get the footprint shape
-                    fp = shapely.wkt.loads(df.loc[df['catalog_id']==c,
-                            'Footprint WKT'].values[0])
+                    fp = shapely.wkt.loads(df.loc[df['catalog_id'] == c, 'Footprint WKT'].values[0])
                     fp_prj = transform(project, fp)
 
                     # intersect the AOI with the footprint
@@ -574,7 +578,7 @@ class sensortools(object):
                     # perform intersection and calculate area
                     try:
                         inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
-                    except:
+                    except TopologicalError:
                         cloud_prj = cloud_prj.buffer(0.0)
                         inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
 
@@ -583,9 +587,9 @@ class sensortools(object):
                     pct = inter_km2 / aoi_fp_inter_km2 * 100.
 
                     # update the dataframe
-                    df.loc[df['catalog_id']==c, 'AOI Cloud Cover'] = pct
-                    df.loc[df['catalog_id']==c, 'Cloud WKT'] = cloud.wkt
-            except:
+                    df.loc[df['catalog_id'] == c, 'AOI Cloud Cover'] = pct
+                    df.loc[df['catalog_id'] == c, 'Cloud WKT'] = cloud.wkt
+            except KeyError:
                 # no clouds, move on...
                 print('Warning, No Clouds Found...')
 
@@ -604,6 +608,8 @@ class sensortools(object):
         """
         ids, cat, s, pr, mr, t, c, n, e, f, i, k, ta = [], [], [], [], [], [], [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
+            print(re)
+            print(re['properties']['heyhey'])
             ids.append(re['identifier'])
             cat.append(re['properties'].get('catalogID'))
             s.append(re['properties']['sensorPlatformName'])
@@ -614,15 +620,15 @@ class sensortools(object):
             # Catches for Landsat and RadarSat images missing these properties
             try:
                 c.append(re['properties']['cloudCover'])
-            except:
+            except KeyError:
                 c.append(0)
             try:
                 n.append(re['properties']['offNadirAngle'])
-            except:
+            except KeyError:
                 n.append(0)
             try:
                 e.append(re['properties']['sunElevation'])
-            except:
+            except KeyError:
                 e.append(0)
             f.append(re['properties']['footprintWkt'])
             i.append(self._fpaoiinter(re['properties']['footprintWkt'], aoi))
