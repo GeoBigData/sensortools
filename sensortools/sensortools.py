@@ -149,7 +149,7 @@ class sensortools(object):
 
         return df
 
-    def _gbdx_detailed_pricing(self, subscription, tier, cost, gb, compute, sales,
+    def _gbdx_detailed_pricing(self, subscription, tier, cost, gb, km2, compute, sales,
             mac, rev_share, claw_back, sensor):
         """
         Detailed Tier Pricing. Used primarily to determine $/km2 to be used in
@@ -223,7 +223,7 @@ class sensortools(object):
             resp = requests.get(url.format(key=key, f=row['catalog_id'])).text
 
             # featureID
-            fid = response.text.split('DigitalGlobe:featureId')[1][1:][:-2]
+            fid = resp.text.split('DigitalGlobe:featureId')[1][1:][:-2]
 
             df.loc[df.catalog_id==row.catalog_id, 'EarthWatchID'] = fid
 
