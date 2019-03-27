@@ -608,8 +608,6 @@ class sensortools(object):
         """
         ids, cat, s, pr, mr, t, c, n, e, f, i, k, ta = [], [], [], [], [], [], [], [], [], [], [], [], []
         for j, re in enumerate(search_results):
-            print(re)
-            print(re['properties']['heyhey'])
             ids.append(re['identifier'])
             cat.append(re['properties'].get('catalogID'))
             s.append(re['properties']['sensorPlatformName'])
