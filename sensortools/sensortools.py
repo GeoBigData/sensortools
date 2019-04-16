@@ -1,4 +1,4 @@
-import sensortools.tools.spatial as spatial_tools
+# import sensortools.tools.spatial as spatial_tools
 import pandas as pd
 import numpy as np
 import folium

@@ -1,7 +1,6 @@
 folium
 matplotlib
 shapely
-gbdxtools
 numpy
 pyproj
 pandas
