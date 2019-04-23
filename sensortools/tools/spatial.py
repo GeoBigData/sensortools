@@ -1,4 +1,5 @@
 import shapely
+import shapely.wkt
 import pyproj
 import utm
 
