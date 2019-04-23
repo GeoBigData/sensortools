@@ -22,10 +22,8 @@ def convertAOItoLocation(aoi):
 @ingest_wkt
 def getUTMProj(aoi):
     """
-    Determine the UTM Proj for an AOI
+    Determine the UTM Projection for an AOI
     """
-    # convert AOI to shape
-    shp = shapely.wkt.loads(aoi)
     # get the centroid of the shape
     loc = convertAOItoLocation(aoi)
     # find the UTM info
@@ -44,7 +42,7 @@ def getUTMProj(aoi):
 @ingest_latlon
 def getLLUTMProj(latitude, longitude):
     """
-    Determine the UTM Proj for a LatLong
+    Determine the UTM Projection for a LatLong
     """
     # find the UTM info
     utm_def = utm.from_latlon(latitude, longitude)
