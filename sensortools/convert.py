@@ -89,6 +89,11 @@ def gb_to_km2(gb, bit_depth=32):
     -------
     df
         Returns input DataFrame with associated aerial coverage in km2 for each sensor
+
+    Example
+    -------
+    from sensortools import convert
+    convert.gb_to_km2(100)
     """
 
     file_bytes = gb * 1e+9
@@ -125,6 +130,11 @@ def km2_to_gb(km2, bit_depth=32):
         -------
         df
             Returns input DataFrame with associated GB for input aerial coverage
+
+        Example
+        -------
+        from sensortools import convert
+        convert.km2_to_gb(100)
         """
         side_length = np.sqrt(km2) * 1000
         sensors = _formatsensorinfo()
