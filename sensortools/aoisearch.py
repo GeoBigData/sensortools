@@ -2,6 +2,7 @@ import sensortools.tools.spatial as spatial_tools
 from functools import partial
 from shapely.geos import TopologicalError
 from shapely.ops import transform
+import shapely.wkt
 from .exceptions import *
 import pandas as pd
 import numpy as np
