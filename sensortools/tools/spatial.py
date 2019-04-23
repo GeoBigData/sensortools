@@ -1,9 +1,11 @@
+from sensortools.decorators import ingest_wkt, ingest_latlon
 import shapely
 import shapely.wkt
 import pyproj
 import utm
 
 
+@ingest_wkt
 def convertAOItoLocation(aoi):
     """
     Convert a WKT Polygon to a Folium Point Location
@@ -17,6 +19,7 @@ def convertAOItoLocation(aoi):
     return [y, x]
 
 
+@ingest_wkt
 def getUTMProj(aoi):
     """
     Determine the UTM Proj for an AOI
@@ -38,6 +41,7 @@ def getUTMProj(aoi):
     return to_p
 
 
+@ingest_latlon
 def getLLUTMProj(latitude, longitude):
     """
     Determine the UTM Proj for a LatLong
