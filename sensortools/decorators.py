@@ -15,7 +15,7 @@ def ingest_latlon(func):
     def wrapper(lat, lon):
         try:
             lat, lon = map(float, [lat, lon])
-        except TypeError:
+        except ValueError:
             raise InputError('latitude and longitude must be numeric values')
         if lat < -90 or lat > 90:
             raise InputError('latitude must be between -90 and 90')
