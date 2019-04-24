@@ -74,3 +74,16 @@ def getLLUTMProj(latitude, longitude):
     to_p = pyproj.Proj(proj='utm', zone=zone, ellps='WGS84', hemisphere=hem)
 
     return to_p
+
+
+@ingest_wkt
+def utm_reproject_vector(polygon_wkt):
+    # load in the polygon
+    poly_shp = shapely.wkt.loads(polygon_wkt)
+
+    # create projection function
+    to_p = getUTMProj(polygon_wkt)
+    from_p = pyproj.Proj(init='epsg:4326')
+    project = partial(pyproj.transform, from_p, to_p)
+    utm_polygon = transform(project, poly_shp)
+    return utm_polygon

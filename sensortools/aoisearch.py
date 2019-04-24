@@ -13,22 +13,15 @@ import pyproj
 import json
 
 
-def _fpaoiinter(fp_wkt, aoi):
+def _fpaoiintersect(fp_wkt, aoi):
     """
-    Calculate the individual footprint coverage of the AOI
+    Calculate the percent intersection of a footprint wkt and an AOI
     """
-    # get the projection for area calculations
-    to_p = spatial_tools.getUTMProj(aoi)
-    from_p = pyproj.Proj(init='epsg:4326')
-    project = partial(pyproj.transform, from_p, to_p)
-
     # The projected aoi
-    aoi_shp = shapely.wkt.loads(aoi)
-    aoi_shp_prj = transform(project, aoi_shp)
+    aoi_shp_prj = spatial_tools.utm_reproject_vector(aoi)
 
     # The projected footprint
-    ft_shp = shapely.wkt.loads(fp_wkt)
-    ft_shp_prj = transform(project, ft_shp)
+    ft_shp_prj = spatial_tools.utm_reproject_vector(fp_wkt)
 
     # Intersect the two shapes
     inter_km2 = aoi_shp_prj.intersection(ft_shp_prj).area / 1000000.
@@ -67,7 +60,7 @@ def formatSearchResults(search_results, aoi):
         except KeyError:
             e.append(0)
         f.append(re['properties']['footprintWkt'])
-        i.append(_fpaoiinter(re['properties']['footprintWkt'], aoi))
+        i.append(_fpaoiintersect(re['properties']['footprintWkt'], aoi))
         k.append(spatial_tools.aoiArea(re['properties']['footprintWkt']))
 
     df = pd.DataFrame({
@@ -95,20 +88,21 @@ def formatSearchResults(search_results, aoi):
     return df
 
 
-def aoifootprintcalculations(df, aoi):
+def aoiFootprintIntersection(df, aoi):
     """
     Given an AOI and search results, determine percent of the AOI that is
     covered by all footprints
+    ----------
+    FORMERLY aoiFootprintCalculations
+    returned pct (% overlap) as first argument and `inter_json` as the second argument
+    Note: pct (% overlap) can still be calculated using the aoiFootprintPctCoverage function
     """
-    # projection info
+    # # projection info
     to_p = spatial_tools.getUTMProj(aoi)
     from_p = pyproj.Proj(init='epsg:4326')
-    project = partial(pyproj.transform, from_p, to_p)
 
-    # project the AOI, calc area
-    aoi_shp = shapely.wkt.loads(aoi)
-    aoi_shp_prj = transform(project, aoi_shp)
-    aoi_km2 = aoi_shp_prj.area / 1000000.
+    # project the AOI
+    aoi_shp_prj = spatial_tools.utm_reproject_vector(aoi)
 
     # union all the footprint shapes
     shps = []
@@ -117,26 +111,33 @@ def aoifootprintcalculations(df, aoi):
     footprints = shapely.ops.cascaded_union(shps)
 
     # project the footprint union
-    footprints_prj = transform(project, footprints)
+    footprints_prj = spatial_tools.utm_reproject_vector(footprints.wkt)
 
-    # perform intersection and calculate area
+    # perform intersection
     inter_shp_prj = aoi_shp_prj.intersection(footprints_prj)
-    inter_km2 = inter_shp_prj.area / 1000000.
-    pct = inter_km2 / aoi_km2 * 100.
 
     # project back to wgs84/wkt for mapping
     project_reverse = partial(pyproj.transform, to_p, from_p)
     inter_shp = transform(project_reverse, inter_shp_prj)
     inter_json = shapely.geometry.mapping(inter_shp)
 
-    return [pct, inter_json]
+    return inter_json
 
 
-def aoiFootprintPctCoverage(self, df, aoi):
+def aoiFootprintPctCoverage(df, aoi):
     """
     Return the percent area covered from aoi footprint calculation
     """
-    return self.aoifootprintcalculations(df, aoi)[0]
+    # union all the footprint shapes and project to utm
+    shps = []
+    for i, row in df.iterrows():
+        shps.append(shapely.wkt.loads(row['Footprint WKT']))
+    footprints = shapely.ops.cascaded_union(shps)
+
+    # Take the intersection of the aoi and the footprints and calculate %
+    pct = _fpaoiintersect(footprints.wkt, aoi)
+
+    return pct
 
 
 def aoiCloudCover(df, aoi):
@@ -158,9 +159,7 @@ def aoiCloudCover(df, aoi):
     project = partial(pyproj.transform, from_p, to_p)
 
     # project the AOI, calc area
-    aoi_shp = shapely.wkt.loads(aoi)
-    aoi_shp_prj = transform(project, aoi_shp)
-    aoi_km2 = aoi_shp_prj.area / 1000000.
+    aoi_shp_prj = spatial_tools.utm_reproject_vector(aoi)
 
     # add column to search df
     df['AOI Cloud Cover'] = 0

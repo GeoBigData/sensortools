@@ -198,7 +198,7 @@ def mapSearchFootprintsAOI(df, aoi):
         ).add_to(m)
 
     # add the union footprints to map
-    fp_json = sensortools.aoisearch.aoifootprintcalculations(df, aoi)[1]
+    fp_json = sensortools.aoisearch.aoiFootprintCalculations(df, aoi)[1]
     folium.GeoJson(
         fp_json,
         style_function=_fpUnionStyleFunction,
