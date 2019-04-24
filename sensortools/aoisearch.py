@@ -2,6 +2,7 @@ import sensortools.tools.spatial as spatial_tools
 from functools import partial
 from shapely.geos import TopologicalError
 from shapely.ops import transform
+import shapely.geometry
 import shapely.wkt
 from .exceptions import *
 import pandas as pd
@@ -10,22 +11,6 @@ import requests
 import shapely
 import pyproj
 import json
-
-
-def aoiArea(aoi):
-    """
-    Get the UTM projection string for an AOI centroid
-    """
-    shp = shapely.wkt.loads(aoi)
-    to_p = spatial_tools.getUTMProj(aoi)
-    from_p = pyproj.Proj(init='epsg:4326')
-
-    project = partial(pyproj.transform, from_p, to_p)
-    shp_utm = transform(project, shp)
-    # calculate area of projected units in km2
-    km2 = shp_utm.area / 1000000.
-
-    return km2
 
 
 def _fpaoiinter(fp_wkt, aoi):
@@ -49,7 +34,7 @@ def _fpaoiinter(fp_wkt, aoi):
     inter_km2 = aoi_shp_prj.intersection(ft_shp_prj).area / 1000000.
 
     # Calculate area in km2
-    pct = inter_km2 / aoiArea(aoi) * 100.
+    pct = inter_km2 / spatial_tools.aoiArea(aoi) * 100.
 
     return pct
 
@@ -83,7 +68,7 @@ def formatSearchResults(search_results, aoi):
             e.append(0)
         f.append(re['properties']['footprintWkt'])
         i.append(_fpaoiinter(re['properties']['footprintWkt'], aoi))
-        k.append(aoiArea(re['properties']['footprintWkt']))
+        k.append(spatial_tools.aoiArea(re['properties']['footprintWkt']))
 
     df = pd.DataFrame({
         'image_identifier': ids,

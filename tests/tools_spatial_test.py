@@ -1,6 +1,7 @@
 import sensortools.tools.spatial as spatial_tools
 from sensortools.decorators import InputError
 from shapely.geometry import Point
+from math import isclose
 from pyproj import Proj
 import pytest
 
@@ -16,6 +17,14 @@ def test_convertaoitolocation_input_err():
     with pytest.raises(InputError):
         aoi = (15, -5, 15, 0, 10, 0, 10, -5, 15, -5)
         spatial_tools.convertAOItoLocation(aoi)
+
+
+def test_aoiArea_4326():
+    aoi_wkt = 'POLYGON ((-104.9513504743272 22.60684943190418, -104.951024727671 23.51018701498204, ' \
+              '-105 23.51019471509047, -105 22.60685680348743, -104.9513504743272 22.60684943190418))'
+    truth_area = 500
+    print(spatial_tools.aoiArea(aoi_wkt))
+    assert isclose(spatial_tools.aoiArea(aoi_wkt), truth_area)
 
 
 def test_getUTMProj_north():

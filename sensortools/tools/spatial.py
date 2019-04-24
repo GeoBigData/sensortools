@@ -1,5 +1,7 @@
 from sensortools.decorators import ingest_wkt, ingest_latlon
+from functools import partial
 import shapely
+from shapely.ops import transform
 import shapely.wkt
 import pyproj
 import utm
@@ -17,6 +19,23 @@ def convertAOItoLocation(aoi):
 
     # returning as lat lon as that is required by folium
     return [y, x]
+
+
+@ingest_wkt
+def aoiArea(aoi):
+    """
+    Get the area of a WKT in 4326
+    """
+    shp = shapely.wkt.loads(aoi)
+    to_p = getUTMProj(aoi)
+    from_p = pyproj.Proj(init='epsg:4326')
+
+    project = partial(pyproj.transform, from_p, to_p)
+    shp_utm = transform(project, shp)
+    # calculate area of projected units in km2
+    km2 = shp_utm.area / 1000000.
+
+    return km2
 
 
 @ingest_wkt
