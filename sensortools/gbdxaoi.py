@@ -90,14 +90,13 @@ def formatSearchResults(search_results, aoi):
 
 def aoiFootprintIntersection(df, aoi):
     """
-    Given an AOI and search results, determine percent of the AOI that is
-    covered by all footprints
+    Given an AOI and search results, return a shapely object of the intersection between the search results and the aoi
     ----------
     FORMERLY aoiFootprintCalculations
     returned pct (% overlap) as first argument and `inter_json` as the second argument
     Note: pct (% overlap) can still be calculated using the aoiFootprintPctCoverage function
     """
-    # # projection info
+    # projection info
     to_p = spatial_tools.getUTMProj(aoi)
     from_p = pyproj.Proj(init='epsg:4326')
 
@@ -109,6 +108,7 @@ def aoiFootprintIntersection(df, aoi):
     for i, row in df.iterrows():
         shps.append(shapely.wkt.loads(row['Footprint WKT']))
     footprints = shapely.ops.cascaded_union(shps)
+    print('footprints wkt', footprints.wkt)
 
     # project the footprint union
     footprints_prj = spatial_tools.utm_reproject_vector(footprints.wkt)
@@ -119,9 +119,9 @@ def aoiFootprintIntersection(df, aoi):
     # project back to wgs84/wkt for mapping
     project_reverse = partial(pyproj.transform, to_p, from_p)
     inter_shp = transform(project_reverse, inter_shp_prj)
-    inter_json = shapely.geometry.mapping(inter_shp)
+    print('intersection wkt ', inter_shp.wkt)
 
-    return inter_json
+    return inter_shp
 
 
 def aoiFootprintPctCoverage(df, aoi):
