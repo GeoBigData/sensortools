@@ -5,6 +5,7 @@ from shapely.ops import transform
 import shapely.geometry
 import shapely.wkt
 from .exceptions import *
+import geopandas as gpd
 import pandas as pd
 import numpy as np
 import requests
@@ -34,7 +35,7 @@ def _fpaoiintersect(fp_wkt, aoi):
 
 def formatSearchResults(search_results, aoi):
     """
-    Format the results into a pandas df. To be used in plotting functions
+    Format the results into a geopandas df. To be used in plotting functions
     but also useful outside of them.
     """
     ids, cat, s, pr, mr, t, c, n, e, f, i, k, ta = [], [], [], [], [], [], [], [], [], [], [], [], []
@@ -63,7 +64,7 @@ def formatSearchResults(search_results, aoi):
         i.append(_fpaoiintersect(re['properties']['footprintWkt'], aoi))
         k.append(spatial_tools.aoiArea(re['properties']['footprintWkt']))
 
-    df = pd.DataFrame({
+    df = gpd.GeoDataFrame({
         'image_identifier': ids,
         'catalog_id': cat,
         'Sensor': s,
@@ -74,16 +75,12 @@ def formatSearchResults(search_results, aoi):
         'Off Nadir Angle': n,
         'Sun Elevation': e,
         'Target Azimuth': ta,
-        'Footprint WKT': f,
+        'Footprint Geometry': list(map(shapely.wkt.loads, f)),
         'Footprint Area (km2)': k,
-        'Footprint AOI Inter Percent': i},
-        index=pd.to_datetime(t))
-    df.sort_values(['Date'], inplace=True)
+        'Footprint AOI Intersect Percent': i})
     # for some reason, search results spit back geoms that do not intersect
     # the aoi... so must remove 0's
-    df = df[df['Footprint AOI Inter Percent'] != 0]
-
-    df['x'] = range(len(df))
+    df = df[df['Footprint AOI Intersect Percent'] != 0]
 
     return df
 
@@ -104,11 +101,7 @@ def aoiFootprintIntersection(df, aoi):
     aoi_shp_prj = spatial_tools.utm_reproject_vector(aoi)
 
     # union all the footprint shapes
-    shps = []
-    for i, row in df.iterrows():
-        shps.append(shapely.wkt.loads(row['Footprint WKT']))
-    footprints = shapely.ops.cascaded_union(shps)
-    print('footprints wkt', footprints.wkt)
+    footprints = shapely.ops.cascaded_union([row['Footprint Geometry'] for _, row in df.iterrows()])
 
     # project the footprint union
     footprints_prj = spatial_tools.utm_reproject_vector(footprints.wkt)
@@ -119,7 +112,6 @@ def aoiFootprintIntersection(df, aoi):
     # project back to wgs84/wkt for mapping
     project_reverse = partial(pyproj.transform, to_p, from_p)
     inter_shp = transform(project_reverse, inter_shp_prj)
-    print('intersection wkt ', inter_shp.wkt)
 
     return inter_shp
 
@@ -129,10 +121,7 @@ def aoiFootprintPctCoverage(df, aoi):
     Return the percent area covered from aoi footprint calculation
     """
     # union all the footprint shapes and project to utm
-    shps = []
-    for i, row in df.iterrows():
-        shps.append(shapely.wkt.loads(row['Footprint WKT']))
-    footprints = shapely.ops.cascaded_union(shps)
+    footprints = shapely.ops.cascaded_union([row['Footprint Geometry'] for _, row in df.iterrows()])
 
     # Take the intersection of the aoi and the footprints and calculate %
     pct = _fpaoiintersect(footprints.wkt, aoi)

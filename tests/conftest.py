@@ -1,5 +1,4 @@
 from shapely.geometry import shape
-import pandas as pd
 import pytest
 import json
 import os
@@ -26,12 +25,6 @@ def gbdxsearch_results(data_dir):
     path = os.path.join(data_dir, 'gbdxsearch_results.json')
     with open(path, 'r') as f:
         return json.load(f)
-
-
-@pytest.fixture(scope='session')
-def gbdxsearch_resultsdf(data_dir):
-    path = os.path.join(data_dir, 'gbdxsearch_formatted.csv')
-    return pd.read_csv(path)
 
 
 @pytest.fixture(scope='session')
