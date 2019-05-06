@@ -25,7 +25,7 @@ results_df = sensortools.gbdxaoi.formatSearchResults(catalog_results, aoi_wkt)
 ##########
 # Just get clouds shapes by catid
 catids = list(results_df.index)
-api_key = ''
+api_key = 'pP2aV9nVyt2BzJd4IUcfy8GXslhtWV4K3k9ILWxz'
 cloud_shapes = sensortools.gbdxaoi.catidCloudCover(catids, api_key)
 cloud_shapes_aoi = sensortools.gbdxaoi.catidCloudCover(catids, api_key, aoi=aoi_wkt)
 

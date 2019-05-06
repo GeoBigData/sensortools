@@ -189,28 +189,24 @@ def aoiCloudCover(df, api_key, aoi=None):
             cloud_polygons += clouds.geoms
         else:
             cloud_polygons.append(clouds)
-        if aoi:
-            row['cloud_geom_aoi'] = aoi.difference(shapely.ops.cascaded_union(cloud_polygons))
-        else:
-            row['cloud_geom'] = shapely.ops.cascaded_union(cloud_polygons)
+        row[cloud_name] = shapely.ops.cascaded_union(cloud_polygons)
         return row
 
     def add_cloud_free_footprint(row):
-        if aoi:
-            cloud_free = row['footprint_geometry'].difference(row['cloud_geom_aoi'])
-            row['cloud_free_geom_aoi'] = aoi.difference(cloud_free)
-        else:
-            row['cloud_free_geom'] = row['footprint_geometry'].difference(row['cloud_geom'])
+        row[cloud_free_name] = row['footprint_geometry'].difference(row[cloud_name])
         return row
 
     def add_aoi_coverage_pct(row):
-        return 100*row['cloud_geom_aoi'].area / aoi.area
+        return 100*row['cloud_geom_aoi'].area / shapely.wkt.loads(aoi).area
 
     catids = list(df.index)
-    cloud_shapes = catidCloudCover(catids, api_key)
-
     if aoi:
-        aoi = shapely.wkt.loads(aoi)
+        cloud_shapes = catidCloudCover(catids, api_key, aoi=aoi)
+        cloud_name, cloud_free_name = 'cloud_geom_aoi', 'cloud_free_geom_aoi'
+    else:
+        cloud_shapes = catidCloudCover(catids, api_key)
+        cloud_name, cloud_free_name = 'cloud_geom', 'cloud_free_geom'
+
     df = df.apply(add_cloud_footprint, axis=1)
     df = df.apply(add_cloud_free_footprint, axis=1)
     if aoi:
