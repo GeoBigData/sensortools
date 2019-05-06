@@ -1,4 +1,4 @@
-Sensor,Resolution (m),Band Count
+sensor,Resolution (m),Band Count
 GEO1_Pan,0.41,1
 GEO01_MS,1.64,4
 WV01_Pan,0.5,1

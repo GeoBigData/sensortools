@@ -32,4 +32,8 @@ def search_intersection_geom(data_dir):
     path = os.path.join(data_dir, 'search_intersection.geojson')
     with open(path, 'r') as f:
         geojson = json.load(f)
-    return shape(geojson['geometry'])
+    raw_shp = shape(geojson['geometry'])
+    buffered = raw_shp.buffer(0.001)
+    inside = raw_shp.buffer(-0.001)
+    donut_of_acceptability = buffered - inside
+    return donut_of_acceptability

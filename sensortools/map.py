@@ -148,8 +148,8 @@ def mapGB(gb=None, aoi=(39.742043, -104.991531)):
         folium.Circle(
             radius=np.sqrt(row['Area (km2)'] / np.pi) * 1000,
             location=aoi,
-            tooltip=row['Sensor'],
-            color=_sensor_info()[row['Sensor']]['plot_color'],
+            tooltip=row['sensor'],
+            color=_sensor_info()[row['sensor']]['plot_color'],
             fill=False,
         ).add_to(m)
 

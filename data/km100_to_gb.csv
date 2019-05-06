@@ -1,4 +1,4 @@
-Sensor,Resolution (m),Band Count,GB
+sensor,Resolution (m),Band Count,GB
 GE01_Pan,0.41,1,2.37953599
 GE01_MS,1.64,4,0.594883998
 GE01_PanSharp,0.41,4,2.974419988

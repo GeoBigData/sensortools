@@ -8,7 +8,7 @@ def searchDistPlot(df, var, sensor=None):
     Create a Distribution plot of one variable. Optionally, subset by sensor
     """
     if sensor:
-        df = df.loc[df.Sensor == sensor]
+        df = df.loc[df.sensor == sensor]
     sns.distplot(df[var])
 
 
@@ -17,7 +17,7 @@ def searchVarPlot(df, var1=None, var2=None, sensor=None):
     Create a Jointplot of two variables. Optionally, subset by sensor
     """
     if sensor:
-        df = df[df.Sensor == sensor]
+        df = df[df.sensor == sensor]
     g = sns.jointplot(df[var1], df[var2], kind='kde')
     try:
         # seems to fail on GBDX Notebooks
@@ -30,7 +30,7 @@ def searchSensorComparePlot(df, var1=None, var2=None):
     """
     Compare multiple sensors and variables
     """
-    g = sns.FacetGrid(df, col="Sensor")
+    g = sns.FacetGrid(df, col="sensor")
     g.map(sns.kdeplot, var1, var2)
 
 
@@ -39,7 +39,7 @@ def searchBarPlot(df):
     Bar Plot of the count of sensor images in search
     """
     f, ax = plt.subplots(figsize=(15,6))
-    sns.countplot(x='Sensor', data=df)
+    sns.countplot(x='sensor', data=df)
     ax.set_ylabel('Image Count')
 
 
@@ -51,7 +51,7 @@ def searchScatterPlot(df):
     f, ax = plt.subplots(figsize=(12,6))
     sns.despine(bottom=True, left=True)
 
-    sns.stripplot(x="Date", y="Sensor",
+    sns.stripplot(x="timestamp", y="sensor",
                   data=df, dodge=True, jitter=True,
                   alpha=.25, zorder=1, size=10)
 
@@ -65,7 +65,7 @@ def searchScatterPlot(df):
     ax.xaxis.set_major_formatter(yearsFmt)
     ax.xaxis.set_minor_locator(months)
 
-    s = df.groupby(['Sensor']).count()
+    s = df.groupby(['sensor']).count()
 
     _ = ax.set_yticklabels(s.index + ' Count: ' + s.x.map(str))
     _ = ax.get_yaxis().set_visible(False)

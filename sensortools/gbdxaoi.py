@@ -1,20 +1,15 @@
 import sensortools.tools.spatial as spatial_tools
-from functools import partial
-from shapely.geos import TopologicalError
 from shapely.ops import transform
 import shapely.geometry
 import shapely.wkt
-from .exceptions import *
 import geopandas as gpd
 import pandas as pd
 import numpy as np
 import requests
 import shapely
-import pyproj
-import json
 
 
-def _fpaoiintersect(fp_wkt, aoi):
+def _intersectpct(fp_wkt, aoi):
     """
     Calculate the percent intersection of a footprint wkt and an AOI
     """
@@ -33,7 +28,7 @@ def _fpaoiintersect(fp_wkt, aoi):
     return pct
 
 
-def formatSearchResults(search_results, aoi):
+def formatSearchResults(search_results, aoi=None):
     """
     Format the results into a geopandas df. To be used in plotting functions
     but also useful outside of them.
@@ -61,157 +56,164 @@ def formatSearchResults(search_results, aoi):
         except KeyError:
             e.append(0)
         f.append(re['properties']['footprintWkt'])
-        i.append(_fpaoiintersect(re['properties']['footprintWkt'], aoi))
+        if aoi:
+            i.append(_intersectpct(re['properties']['footprintWkt'], aoi))
         k.append(spatial_tools.aoiArea(re['properties']['footprintWkt']))
 
-    df = gpd.GeoDataFrame({
+    df = pd.DataFrame({
         'image_identifier': ids,
         'catalog_id': cat,
-        'Sensor': s,
-        'Pan Resolution': pr,
-        'MS Resolution': mr,
-        'Date': pd.to_datetime(t),
-        'Cloud Cover': c,
-        'Off Nadir Angle': n,
-        'Sun Elevation': e,
-        'Target Azimuth': ta,
-        'Footprint Geometry': list(map(shapely.wkt.loads, f)),
-        'Footprint Area (km2)': k,
-        'Footprint AOI Intersect Percent': i})
-    # for some reason, search results spit back geoms that do not intersect
-    # the aoi... so must remove 0's
-    df = df[df['Footprint AOI Intersect Percent'] != 0]
-
+        'sensor': s,
+        'pan_resolution': pr,
+        'ms_resolution': mr,
+        'timestamp': pd.to_datetime(t),
+        'cloud_cover': c,
+        'off_nadir_angle': n,
+        'sun_elevation': e,
+        'target_azimuth': ta,
+        'footprint_geometry': list(map(shapely.wkt.loads, f)),
+        'footprint_area(km2)': k,
+        })
+    if aoi:
+        df = df.join(pd.DataFrame({'footprint_aoi_intersect_percent': i}))
+        # for some reason, search results spit back geoms that do not intersect
+        # the aoi... so must remove 0's
+        df = df[df['footprint_aoi_intersect_percent'] != 0]
+    # Reformat to geopandas df and set index as catalog_id
+    df = gpd.GeoDataFrame(df, geometry='footprint_geometry')
+    df = df.set_index('catalog_id')
     return df
 
 
-def aoiFootprintIntersection(df, aoi):
+def aoiFootprintIntersection(df, aoi, geom_column='footprint_geometry'):
     """
-    Given an AOI and search results, return a shapely object of the intersection between the search results and the aoi
+    Given an AOI and search results dataframe, return a shapely object of the intersection between the search results
+    and the aoi.  Use the geometry column specified by `geom_column`
+    :param df:
+    :param aoi:
+    :param geom_column: The string name of the column which should be used for the footprint shape geometry.  Shape
+    geometries should be represented in the dataframe as shapely objects
     ----------
     FORMERLY aoiFootprintCalculations
     returned pct (% overlap) as first argument and `inter_json` as the second argument
     Note: pct (% overlap) can still be calculated using the aoiFootprintPctCoverage function
     """
-    # projection info
-    to_p = spatial_tools.getUTMProj(aoi)
-    from_p = pyproj.Proj(init='epsg:4326')
-
-    # project the AOI
-    aoi_shp_prj = spatial_tools.utm_reproject_vector(aoi)
-
     # union all the footprint shapes
-    footprints = shapely.ops.cascaded_union([row['Footprint Geometry'] for _, row in df.iterrows()])
-
-    # project the footprint union
-    footprints_prj = spatial_tools.utm_reproject_vector(footprints.wkt)
+    footprints = shapely.ops.cascaded_union([row[geom_column] for _, row in df.iterrows()])
 
     # perform intersection
-    inter_shp_prj = aoi_shp_prj.intersection(footprints_prj)
+    aoi = shapely.wkt.loads(aoi)
+    intersection_shp = aoi.intersection(footprints)
 
-    # project back to wgs84/wkt for mapping
-    project_reverse = partial(pyproj.transform, to_p, from_p)
-    inter_shp = transform(project_reverse, inter_shp_prj)
-
-    return inter_shp
+    return intersection_shp
 
 
-def aoiFootprintPctCoverage(df, aoi):
+def aoiFootprintPctCoverage(df, aoi, geom_column='footprint_geometry'):
     """
     Return the percent area covered from aoi footprint calculation
+    :param df:
+    :param aoi:
+    :param geom_column: The string name of the column which should be used for the footprint shape geometry.  Shape
+    geometries should be represented in the dataframe as shapely objects
     """
     # union all the footprint shapes and project to utm
-    footprints = shapely.ops.cascaded_union([row['Footprint Geometry'] for _, row in df.iterrows()])
+    footprints = shapely.ops.cascaded_union([row[geom_column] for _, row in df.iterrows()])
 
     # Take the intersection of the aoi and the footprints and calculate %
-    pct = _fpaoiintersect(footprints.wkt, aoi)
+    pct = _intersectpct(footprints.wkt, aoi)
+
+    # Print out a nice little print statement
+    print('{cov_percent}% of the AOI is covered using {n_images} images'.format(
+        n_images=df.shape[0],
+        cov_percent=pct
+    ))
 
     return pct
 
 
-def aoiCloudCover(df, aoi):
+def catidCloudCover(catids, api_key, aoi=None):
     """
-    For each footprint in the search results, calculate a percent cloud
-    cover for the AOI (instead of entire strip)
+    For each catid in the catids list, query the DUC database to get the cloud cover polygon
+    -------
+    `get_clouds` from Jon's notebook
     """
-    try:
-        with open('duc-api.txt', 'r') as a:
-            api_key = a.readlines()[0].rstrip()
-    except IOError:
-        raise MissingDUCAPIkeyError('Could not find DUC API key in ./duc-api.txt')
-    except IndexError:
-        raise DUCAPIkeyFormattingError('Could not find text in ./duc-api.txt')
-
-    # projection info
-    to_p = spatial_tools.getUTMProj(aoi)
-    from_p = pyproj.Proj(init='epsg:4326')
-    project = partial(pyproj.transform, from_p, to_p)
-
-    # project the AOI, calc area
-    aoi_shp_prj = spatial_tools.utm_reproject_vector(aoi)
-
-    # add column to search df
-    df['AOI Cloud Cover'] = 0
-    df['Cloud WKT'] = ''
-
-    # search the results, do not submit catids with 0 cloud cover
-    catids = df[df['Cloud Cover'] > 0].catalog_id.values
-
-    # split catids into groups of 50 so API doesn't choke
+    # Ingest the aoi, if given
+    if aoi:
+        aoi_geom = shapely.wkt.loads(aoi)
+    # Split catids into groups of 50 so API doesn't choke
     cat_arr = np.array_split(catids, np.ceil(len(catids) / 50.))
 
-    # iterate over groups of 50
+    # Send requests to DUC database in groups of 50
+    url = "https://api.discover.digitalglobe.com/v1/services/cloud_cover/MapServer/0/query"
+    headers = {
+        'x-api-key': "{api_key}".format(api_key=api_key),
+        'content-type': "application/x-www-form-urlencoded"
+    }
+    cloud_shapes = {}
     for cats in cat_arr:
-        # send request to DUC database
-        url = "https://api.discover.digitalglobe.com/v1/services/cloud_cover/MapServer/0/query"
-        headers = {
-            'x-api-key': "{api_key}".format(api_key=api_key),
-            'content-type': "application/x-www-form-urlencoded"
-        }
         data = {
             'outFields': '*',
-            'where': "image_identifier IN ({cat})".format(cat="'" + "','".join(cats) + "'"),
+            'where': "image_identifier IN ({})".format(', '.join(["'{}'".format(catid) for catid in cats])),
             'outSR': '4326',
             'f': 'geojson'
         }
-        response = requests.request("POST", url, headers=headers, data=data)
-        clouds = json.loads(response.text)
+        response = requests.post(url, headers=headers, data=data)
+        response.raise_for_status()
+        for catid in catids:
+            result = next(
+                feature
+                for feature in response.json()['features']
+                if feature['properties']['image_identifier'] == catid
+            )
+            if result['geometry'] is None:
+                cloud_shapes[catid] = None
+            else:
+                full_cloud_geom = shapely.geometry.shape(result['geometry'])
+                if aoi:
+                    final_geom = full_cloud_geom.difference(aoi_geom)
+                else:
+                    final_geom = full_cloud_geom
+                cloud_shapes[catid] = final_geom
+    return cloud_shapes
 
-        try:
-            # iterate over the clouds and perform cloud cover percent
-            for feature in clouds['features']:
-                # get catalog id
-                c = feature['properties']['image_identifier']
 
-                # get the footprint shape
-                fp = shapely.wkt.loads(df.loc[df['catalog_id'] == c, 'Footprint WKT'].values[0])
-                fp_prj = transform(project, fp)
+def aoiCloudCover(df, api_key, aoi=None):
+    """Automatically grab catids from a dataframe, get cloud shape from them, and append a new cloud column to df"""
+    def add_cloud_footprint(row):
+        cloud_polygons = []
+        catid = row.name
+        clouds = cloud_shapes[catid]
+        if not clouds:
+            pass
+        elif clouds.geom_type == 'MultiPolygon':
+            cloud_polygons += clouds.geoms
+        else:
+            cloud_polygons.append(clouds)
+        if aoi:
+            row['cloud_geom_aoi'] = aoi.difference(shapely.ops.cascaded_union(cloud_polygons))
+        else:
+            row['cloud_geom'] = shapely.ops.cascaded_union(cloud_polygons)
+        return row
 
-                # intersect the AOI with the footprint
-                # using this as intersection with clouds
-                aoi_fp_inter = aoi_shp_prj.intersection(fp_prj)
-                aoi_fp_inter_km2 = aoi_fp_inter.area / 1000000.
+    def add_cloud_free_footprint(row):
+        if aoi:
+            cloud_free = row['footprint_geometry'].difference(row['cloud_geom_aoi'])
+            row['cloud_free_geom_aoi'] = aoi.difference(cloud_free)
+        else:
+            row['cloud_free_geom'] = row['footprint_geometry'].difference(row['cloud_geom'])
+        return row
 
-                # extract the clouds and conver to shape
-                cloud = shapely.geometry.shape(feature['geometry'])
-                cloud_prj = transform(project, cloud)
+    def add_aoi_coverage_pct(row):
+        return 100*row['cloud_geom_aoi'].area / aoi.area
 
-                # perform intersection and calculate area
-                try:
-                    inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
-                except TopologicalError:
-                    cloud_prj = cloud_prj.buffer(0.0)
-                    inter_shp_prj = aoi_fp_inter.intersection(cloud_prj)
+    catids = list(df.index)
+    cloud_shapes = catidCloudCover(catids, api_key)
 
-                inter_km2 = inter_shp_prj.area / 1000000.
-
-                pct = inter_km2 / aoi_fp_inter_km2 * 100.
-
-                # update the dataframe
-                df.loc[df['catalog_id'] == c, 'AOI Cloud Cover'] = pct
-                df.loc[df['catalog_id'] == c, 'Cloud WKT'] = cloud.wkt
-        except KeyError:
-            # no clouds, move on...
-            print('Warning, No Clouds Found...')
+    if aoi:
+        aoi = shapely.wkt.loads(aoi)
+    df = df.apply(add_cloud_footprint, axis=1)
+    df = df.apply(add_cloud_free_footprint, axis=1)
+    if aoi:
+        df.apply(add_aoi_coverage_pct, axis=1)
 
     return df
