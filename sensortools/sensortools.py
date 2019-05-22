@@ -554,7 +554,7 @@ class sensortools(object):
                 response = requests.request("POST", url, headers=headers, data=data)
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                raise DUCAPIError('An HTTP error was returned from the DUC API.  Check your API key. \n Full error:', e)
+                raise DUCAPIError('An HTTP error was returned from the DUC API.  Check your API key.', e)
 
             clouds = json.loads(response.text)
 
