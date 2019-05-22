@@ -551,8 +551,9 @@ class sensortools(object):
                 'f': 'geojson'
             }
             response = requests.request("POST", url, headers=headers, data=data)
-            if response is not True:
-                raise DUCAPIError('An error was returned from the DUC API.  Check your API key.')
+            response.raise_for_status()
+            # if response is not True:
+            #     raise DUCAPIError('An error was returned from the DUC API.  Check your API key.')
 
             clouds = json.loads(response.text)
 
