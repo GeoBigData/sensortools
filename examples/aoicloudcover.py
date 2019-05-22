@@ -8,6 +8,7 @@ st = sensortools()
 gbdx = Interface()
 
 # Load in AOI
+os.environ['DUC_API_KEY'] = ''
 data_dir = os.path.abspath(os.path.join('./data'))
 japan_path = os.path.join(data_dir, 'japan_urban.shp')
 with fiona.open(japan_path) as src:

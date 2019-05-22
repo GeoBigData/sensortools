@@ -14,6 +14,7 @@ from shapely.ops import transform
 import fiona
 import requests
 import warnings
+import os
 from .exceptions import *
 warnings.filterwarnings("ignore")
 
@@ -511,14 +512,10 @@ class sensortools(object):
         For each footprint in the search results, calculate a percent cloud
         cover for the AOI (instead of entire strip)
         """
-        try:
-            with open('duc-api.txt', 'r') as a:
-                api_key = a.readlines()[0].rstrip()
-        except IOError:
-            raise MissingDUCAPIkeyError('Could not find DUC API key in ./duc-api.txt')
-        except IndexError:
-            raise DUCAPIkeyFormattingError('Could not find text in ./duc-api.txt')
-
+        # check for API key
+        if not os.environ['DUC_API_KEY']:
+            raise MissingDUCAPIkeyError("No DUC API key found.  Set one as environment variable with "
+                                        "`os.environ['DUC_API_KEY'] = 'xxxxxx'`")
         # projection info
         to_p = spatial_tools.getUTMProj(aoi)
         from_p = pyproj.Proj(init='epsg:4326')
@@ -544,7 +541,7 @@ class sensortools(object):
             # send request to DUC database
             url = "https://api.discover.digitalglobe.com/v1/services/cloud_cover/MapServer/0/query"
             headers = {
-                'x-api-key': "{api_key}".format(api_key=api_key),
+                'x-api-key': "{api_key}".format(api_key=os.environ['DUC_API_KEY']),
                 'content-type': "application/x-www-form-urlencoded"
             }
             data = {
@@ -554,6 +551,9 @@ class sensortools(object):
                 'f': 'geojson'
             }
             response = requests.request("POST", url, headers=headers, data=data)
+            if response is not True:
+                raise DUCAPIError('An error was returned from the DUC API.  Check your API key.')
+
             clouds = json.loads(response.text)
 
             try:

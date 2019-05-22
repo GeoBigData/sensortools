@@ -3,6 +3,6 @@ class MissingDUCAPIkeyError(Exception):
     pass
 
 
-class DUCAPIkeyFormattingError(Exception):
-    """Raised when DUC key cannot be extracted from ./duc-api.txt"""
+class DUCAPIError(Exception):
+    """Raised when and error is returned from the DUC API"""
     pass
