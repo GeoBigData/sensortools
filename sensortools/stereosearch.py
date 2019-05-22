@@ -27,6 +27,7 @@ def _get_stereo_angles(taz1, ona1, taz2, ona2):
     Computes the stereo angles based on the Target Azimuth and Off-Nadir Angle for each image.
 
     :param taz1: Target Azimuth for first image
+
     :param ona1: Off-nadir angle for first image
     :param taz2: Target Azimuth for second image
     :param ona2: Off-nadir angle for second image
@@ -98,7 +99,7 @@ def find_stereo_pairs(
         * have similar resolutions
         * are within a certain date range of each other
         """
-        similar_resolutions = abs(row['panResolution_left'] - row['panResolution_right']) < resolution_tolerance
+        similar_resolutions = abs(row['pan_resolution_left'] - row['pan_resolution_right']) < resolution_tolerance
         similar_dates = abs(row['timestamp_left'] - row['timestamp_right']) < date_tolerance
         if not (similar_resolutions and similar_dates):
             return False
@@ -117,10 +118,10 @@ def find_stereo_pairs(
         new_row = row.copy()
 
         stereo_angles = _get_stereo_angles(
-            row['targetAzimuth_left'],
-            row['offNadirAngle_left'],
-            row['targetAzimuth_right'],
-            row['offNadirAngle_right']
+            row['target_azimuth_left'],
+            row['off_nadir_angle_left'],
+            row['target_azimuth_right'],
+            row['off_nadir_angle_right']
         )
         new_row['convergence'] = stereo_angles['convergence']
         new_row['asymmetry'] = stereo_angles['asymmetry']
@@ -129,29 +130,33 @@ def find_stereo_pairs(
 
         return new_row
 
+    # Pre-formatting
+    df = df.reset_index()
+    df['geometry'] = df.footprint_geometry.copy()
+    df = gpd.GeoDataFrame(df, geometry='geometry')
+
     # Compute the cross-join
     cross_join = gpd.sjoin(df, df, how='inner', op='intersects')
-    cross_join = cross_join[cross_join['catalogID_left'] != cross_join['catalogID_right']]
+    cross_join = cross_join[cross_join['catalog_id_left'] != cross_join['catalog_id_right']]
 
     # Filter based on the criteria above
     cross_join = cross_join.apply(add_stereo_angles, axis=1)
 
     filtered = cross_join.copy(deep=True)
     filtered['keep'] = filtered.apply(should_keep, axis=1)
-    filtered = filtered[filtered.keep is True]
+    filtered = filtered[filtered.keep == True]
     filtered.drop('keep', 1, inplace=True)
 
     # Remove any identical pairs
     filtered['ordered_pair'] = filtered.apply(
-        lambda row: ':'.join(sorted([row['catalogID_left'], row['catalogID_right']])), axis=1)
+        lambda row: ':'.join(sorted([row['catalog_id_left'], row['catalog_id_right']])), axis=1)
     filtered.drop_duplicates(subset=['ordered_pair'], inplace=True)
     filtered.drop('ordered_pair', 1, inplace=True)
 
     # Filter based on the track type
     def is_in_track(row):
-        same_sensor = row['catalogID_left'][:3] == row['catalogID_right'][:3]
+        same_sensor = row['catalog_id_left'][:3] == row['catalog_id_right'][:3]
         same_day = (abs(row['timestamp_left'] - row['timestamp_right']).total_seconds() // 3600) < 24
-
         return same_sensor and same_day
 
     filtered['in_track'] = filtered.apply(is_in_track, axis=1)
@@ -166,8 +171,9 @@ def find_stereo_pairs(
         raise ValueError("track_type must be one of 'in-track', 'cross-track', or 'both'.")
 
     # Find the intersection of the two images
-    filtered['stereoGeom'] = filtered.apply(
-        lambda row: row['footprintGeom_left'].intersection(row['footprintGeom_right']).buffer(0).simplify(0.000001),
+    print('filtered cols ', filtered.columns)
+    filtered['overlap_geometry'] = filtered.apply(
+        lambda row: row['footprint_geometry_left'].intersection(row['footprint_geometry_right']).buffer(0).simplify(0.000001),
         axis=1
     )
 
@@ -176,13 +182,13 @@ def find_stereo_pairs(
         return row['stereoGeom'].intersects(aoi)
 
     filtered['intersectsAoi'] = filtered.apply(intersects_aoi, axis=1)
-    filtered = filtered[filtered['intersectsAoi'] is True]
+    filtered = filtered[filtered['intersectsAoi'] == True]
 
     # Format the final DataFrame
     final_pairs = filtered[[
-        'catalogID_left',
+        'catalog_id_left',
         'timestamp_left',
-        'catalogID_right',
+        'catalog_id_right',
         'timestamp_right',
         'stereoGeom',
         'convergence',
@@ -194,12 +200,12 @@ def find_stereo_pairs(
     final_pairs = final_pairs.rename(
         index=str,
         columns={
-            'catalogID_left': 'catalogID_1',
+            'catalog_id_left': 'catalog_id_1',
             'timestamp_left': 'timestamp_1',
-            'catalogID_right': 'catalogID_2',
+            'catalog_id_right': 'catalog_id_2',
             'timestamp_right': 'timestamp_2'
         }
     )
-    final_pairs.set_index(['catalogID_1', 'catalogID_2'], inplace=True)
+    final_pairs.set_index(['catalog_id_1', 'catalog_id_2'], inplace=True)
 
     return final_pairs

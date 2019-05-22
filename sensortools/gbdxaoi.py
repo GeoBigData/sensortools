@@ -137,9 +137,6 @@ def catidCloudCover(catids, api_key, aoi=None):
     -------
     `get_clouds` from Jon's notebook
     """
-    # Ingest the aoi, if given
-    if aoi:
-        aoi_geom = shapely.wkt.loads(aoi)
     # Split catids into groups of 50 so API doesn't choke
     cat_arr = np.array_split(catids, np.ceil(len(catids) / 50.))
 
@@ -170,6 +167,7 @@ def catidCloudCover(catids, api_key, aoi=None):
             else:
                 full_cloud_geom = shapely.geometry.shape(result['geometry'])
                 if aoi:
+                    aoi_geom = shapely.wkt.loads(aoi)
                     final_geom = full_cloud_geom.difference(aoi_geom)
                 else:
                     final_geom = full_cloud_geom
